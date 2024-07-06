@@ -10,7 +10,6 @@
 
 static const char *TAG = "COOP_SENSOR_SENSORS";
 
-#define COOP_HARDWARE_SIGNAL "coop/hardware/signal"
 #define ONE_HOUR_MS (60 * 60 * 1000)
 
 extern bool is_mqtt_connected;

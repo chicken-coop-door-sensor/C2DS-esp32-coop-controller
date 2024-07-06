@@ -11,6 +11,7 @@
 #include "esp_random.h"
 #include "sensors.h"
 #include "ota.h"
+#include "mqtt.h"
 
 // Declare the global/static variables
 bool mqtt_setup_complete = false;
@@ -21,9 +22,6 @@ TaskHandle_t ota_task_handle = NULL;  // Task handle for OTA updating
 
 // Define NETWORK_TIMEOUT_MS
 #define NETWORK_TIMEOUT_MS 10000  // Example value, set as appropriate for your application
-
-#define COOP_STATUS_TOPIC "coop/status"
-#define COOP_OTA_UPDATE_CONTROLLER_TOPIC "coop/update/controller"
 
 extern const uint8_t chicken_coop_controller_cert[];
 extern const uint8_t chicken_coop_controller_private_key[];
@@ -97,7 +95,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
                 cJSON_Delete(json);
             }
         } else if (strncmp(event->topic, COOP_OTA_UPDATE_CONTROLLER_TOPIC, event->topic_len) == 0) {
-            xTaskCreate(&ota_task, "ota_task", 8192, NULL, 5, NULL);
+            xTaskCreate(&ota_task, "ota_task", 8192, NULL, 5, &ota_task_handle);
         } else {
             ESP_LOGW(TAG, "Received unknown topic");
         }
