@@ -1,6 +1,6 @@
 #include "led.h"
 
-static const char *TAG = "COOP_SENSOR_LED";
+static const char *TAG = "LED";
 
 volatile led_state_t current_led_state = LED_OFF;
 

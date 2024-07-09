@@ -4,7 +4,6 @@
 #include "esp_log.h"
 #include "mqtt_client.h"
 #include "cJSON.h"
-#include "main.h"
 #include "led.h"
 #include "state_handler.h"
 #include "mbedtls/debug.h"  // Add this to include mbedtls debug functions
@@ -12,6 +11,7 @@
 #include "sensors.h"
 #include "ota.h"
 #include "mqtt.h"
+#include "sdkconfig.h"
 
 // Declare the global/static variables
 bool mqtt_setup_complete = false;
@@ -29,14 +29,13 @@ extern const uint8_t chicken_coop_controller_private_key[];
 const uint8_t *cert_start = chicken_coop_controller_cert;
 const uint8_t *key_start = chicken_coop_controller_private_key;
 
-static const char *TAG = "COOP_SENSOR_MQTT";
+static const char *TAG = "MQTT";
 bool is_mqtt_connected = false;
 
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
     esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
-    int msg_id;
 
     switch (event->event_id)
     {
@@ -44,10 +43,10 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         mqtt_setup_complete = true; // MQTT setup is complete
         is_mqtt_connected = true;
-        ESP_LOGI(TAG, "Subscribing to topic %s", COOP_STATUS_TOPIC);
-        esp_mqtt_client_subscribe(client, COOP_STATUS_TOPIC, 0);
-        ESP_LOGI(TAG, "Subscribing to topic %s", COOP_OTA_UPDATE_CONTROLLER_TOPIC);
-        esp_mqtt_client_subscribe(client, COOP_OTA_UPDATE_CONTROLLER_TOPIC, 0);
+        ESP_LOGI(TAG, "Subscribing to topic %s", CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC);
+        esp_mqtt_client_subscribe(client, CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC, 0);
+        ESP_LOGI(TAG, "Subscribing to topic %s", CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC);
+        esp_mqtt_client_subscribe(client, CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC, 0);
         if (read_sensors_task_handle == NULL) {
             xTaskCreate(&read_sensors_task, "read_sensors_task", 4096, (void *)client, 5, &read_sensors_task_handle);
         }
@@ -78,14 +77,14 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG,"TOPIC=%.*s\r", event->topic_len, event->topic);
         ESP_LOGI(TAG,"DATA=%.*s\r", event->data_len, event->data);
 
-        if (strncmp(event->topic, COOP_STATUS_TOPIC, event->topic_len) == 0) {
-            ESP_LOGW(TAG, "Received topic %s", COOP_STATUS_TOPIC);
+        if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC, event->topic_len) == 0) {
+            ESP_LOGW(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC);
             // Handle the status response
             cJSON *json = cJSON_Parse(event->data);
             if (json == NULL) {
                 ESP_LOGE(TAG, "Failed to parse JSON");
             } else {
-                cJSON *state = cJSON_GetObjectItem(json, "state");
+                cJSON *state = cJSON_GetObjectItem(json, "LED");
                 if (cJSON_IsString(state)) {
                     ESP_LOGI(TAG, "Parsed state: %s", state->valuestring);
                     set_led_color_based_on_state(state->valuestring);
@@ -94,7 +93,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
                 }
                 cJSON_Delete(json);
             }
-        } else if (strncmp(event->topic, COOP_OTA_UPDATE_CONTROLLER_TOPIC, event->topic_len) == 0) {
+        } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC, event->topic_len) == 0) {
             xTaskCreate(&ota_task, "ota_task", 8192, NULL, 5, &ota_task_handle);
         } else {
             ESP_LOGW(TAG, "Received unknown topic");
@@ -130,7 +129,7 @@ void mqtt_app_start(void)
     const esp_mqtt_client_config_t mqtt_cfg = {
         .broker = {
             .address = {
-                .uri = AWS_IOT_ENDPOINT,
+                .uri = CONFIG_AWS_IOT_ENDPOINT,
             },
         },
         .credentials = {
@@ -197,7 +196,7 @@ void mqtt_subscribe_task(void *pvParameters)
             vTaskDelay(pdMS_TO_TICKS(10000)); // Adjust delay as necessary
             continue;
         }
-        esp_mqtt_client_subscribe(client, COOP_STATUS_TOPIC, 0);
+        esp_mqtt_client_subscribe(client, CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC, 0);
         vTaskDelay(pdMS_TO_TICKS(10000)); // Adjust delay as necessary
     }
 }

@@ -18,16 +18,10 @@ set(SOURCES
 # Specify the directory containing the header files
 set(INCLUDES ".")
 
-# set(EMBED_FILES
-#     "certs/chicken-coop-controller.crt"
-#     "certs/chicken-coop-controller.key"
-# )
-
 # Add the source files to the build
 idf_component_register(
     SRCS ${SOURCES}
     INCLUDE_DIRS ${INCLUDES}
-    # EMBED_TXTFILES ${EMBED_FILES}
     REQUIRES mbedtls app_update esp_https_ota
     PRIV_REQUIRES mbedtls mqtt nvs_flash esp_wifi driver json
 )

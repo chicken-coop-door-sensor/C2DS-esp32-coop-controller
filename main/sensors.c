@@ -7,10 +7,15 @@
 #include "esp_log.h"
 #include "mqtt.h" 
 #include "esp_timer.h"
+#include "sdkconfig.h"
 
-static const char *TAG = "COOP_SENSOR_SENSORS";
 
-#define ONE_HOUR_MS (60 * 60 * 1000)
+static const char *TAG = "SENSORS";
+
+#define TRANSMIT_STATUS_INTERVAL_IN_MINUTES ( CONFIG_STATUS_TRANSMIT_INTERVAL * 60 * 1000)
+
+#define MAIN_LOOP_SLEEP_MS 2000
+#define STATUS_UPDATE_INTERVAL_MS 60000
 
 extern bool is_mqtt_connected;
 
@@ -56,8 +61,8 @@ static void publish_door_status(esp_mqtt_client_handle_t client, door_status_t s
     ESP_LOGI(TAG, "Publishing door status: %s", status_str);
     char message[50];
     snprintf(message, sizeof(message), "{\"door\":\"%s\"}", status_str);
-    int msg_id = esp_mqtt_client_publish(client, COOP_HARDWARE_SIGNAL, message, 0, 1, 0);
-    ESP_LOGI(TAG, "publish successful to %s, msg_id=%d", COOP_HARDWARE_SIGNAL, msg_id);
+    int msg_id = esp_mqtt_client_publish(client, CONFIG_MQTT_PUBLISH_STATUS_TOPIC, message, 0, 1, 0);
+    ESP_LOGI(TAG, "publish successful to %s, msg_id=%d", CONFIG_MQTT_PUBLISH_STATUS_TOPIC, msg_id);
 
     // Update the last publish time
     last_publish_time = esp_timer_get_time() / 1000;
@@ -79,7 +84,7 @@ void read_sensors_task(void *pvParameters) {
 
         uint64_t current_time = esp_timer_get_time() / 1000;
         if (current_door_status != last_door_status || 
-            (current_time - last_publish_time) >= ONE_HOUR_MS) {
+            (current_time - last_publish_time) >= TRANSMIT_STATUS_INTERVAL_IN_MINUTES) {
             publish_door_status(client, current_door_status);
             last_door_status = current_door_status;
         }

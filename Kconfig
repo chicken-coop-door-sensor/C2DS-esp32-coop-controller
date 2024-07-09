@@ -1,0 +1,62 @@
+menu "Chicken Coop Door Sensor"
+
+    menu "Wi-Fi Configuration"
+    config WIFI_SSID
+        string "Wi-Fi SSID"
+        default "disconnected_2dot4"
+        help
+            Set the SSID of the Wi-Fi network to connect to.
+    
+    config WIFI_PASSWORD
+        string "Wi-Fi Password"
+        default "M0nkum0nku"
+        help
+            Set the password for the Wi-Fi network.
+    endmenu
+    
+    menu "AWS IoT Configuration"
+    config AWS_IOT_ENDPOINT 
+        string "IoT AWS Endpoint"
+        default "mqtts://ay1nsbhuqfhzk-ats.iot.us-east-2.amazonaws.com"
+        help
+            Set the AWS IoT Core endpoint for MQTT communication.
+    endmenu
+    
+    menu "OTA Configuration"
+    config OTA_URL
+        string "OTA URL"
+        default "https://charlies-farm-ota.s3.us-east-2.amazonaws.com/coop-controller/chicken-coop-door-sensor-controller.bin"
+        help
+            Set the URL for the OTA update binary.
+    endmenu
+    
+    menu "Status Configuration"
+    config STATUS_TRANSMIT_INTERVAL
+        int "Status Transmit Interval (in minutes)"
+        default 10
+        help
+            Set the interval, in minutes, at which the status is transmitted.
+    endmenu
+
+    menu "MQTT Configuration"
+    config MQTT_PUBLISH_STATUS_TOPIC
+        string "MQTT Topic"
+        default "coop/door/state"
+        help
+            Set the MQTT topic to publish messages to.
+
+    config MQTT_SUBSCRIBE_STATUS_TOPIC
+        string "MQTT Topic"
+        default "coop/led/color"
+        help
+            Set the MQTT topic to subscribe messages from.
+    
+    config MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC
+        string "MQTT Topic"
+        default "coop/update/controller"
+        help
+            Set the MQTT OTA topic to subscribe to.
+    
+    endmenu
+    
+endmenu

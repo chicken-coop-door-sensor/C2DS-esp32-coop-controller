@@ -10,8 +10,4 @@ void mqtt_app_start(void);
 void mqtt_subscribe_task(void *pvParameters);
 bool mqtt_client_is_connected(void);
 
-#define COOP_HARDWARE_SIGNAL "coop/hardware/signal"
-#define COOP_STATUS_TOPIC "coop/status"
-#define COOP_OTA_UPDATE_CONTROLLER_TOPIC "coop/update/controller"
-
 #endif // MQTT_H

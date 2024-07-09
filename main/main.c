@@ -3,14 +3,15 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "mbedtls/debug.h"
-#include "main.h"
 #include "wifi.h"
 #include "mqtt.h"
 #include "led.h"
 #include "sensors.h"
 #include "state_handler.h"
+#include "sdkconfig.h"
 
-static const char *TAG = "COOP_SENSOR_MAIN";
+
+static const char *TAG = "MAIN";
 
 static void tls_debug_callback(void *ctx, int level, const char *file, int line, const char *str)
 {

@@ -370,6 +370,44 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
+# Chicken Coop Door Sensor
+#
+
+#
+# Wi-Fi Configuration
+#
+CONFIG_WIFI_SSID="disconnected_2dot4"
+CONFIG_WIFI_PASSWORD="M0nkum0nku"
+# end of Wi-Fi Configuration
+
+#
+# AWS IoT Configuration
+#
+CONFIG_AWS_IOT_ENDPOINT="mqtts://ay1nsbhuqfhzk-ats.iot.us-east-2.amazonaws.com"
+# end of AWS IoT Configuration
+
+#
+# OTA Configuration
+#
+CONFIG_OTA_URL="https://charlies-farm-ota.s3.us-east-2.amazonaws.com/coop-controller/chicken-coop-door-sensor-controller.bin"
+# end of OTA Configuration
+
+#
+# Status Configuration
+#
+CONFIG_STATUS_TRANSMIT_INTERVAL=10
+# end of Status Configuration
+
+#
+# MQTT Configuration
+#
+CONFIG_MQTT_PUBLISH_STATUS_TOPIC="coop/door/state"
+CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC="coop/led/color"
+CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC="coop/update/controller"
+# end of MQTT Configuration
+# end of Chicken Coop Door Sensor
+
+#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEBUG=y
