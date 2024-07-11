@@ -10,6 +10,7 @@ set(SOURCES
     "state_handler.c"
     "sensors.c"
     "ota.c"
+    "logging.c"
     "certs/amazon_root_ca1.c"
     "certs/chicken_coop_controller_cert.c"
     "certs/chicken_coop_controller_private_key.c"

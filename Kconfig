@@ -45,6 +45,12 @@ menu "Chicken Coop Door Sensor"
         help
             Set the MQTT topic to publish messages to.
 
+    config MQTT_PUBLISH_LOGGING_TOPIC
+        string "MQTT Topic"
+        default "coop/esp32/logs"
+        help
+            Set the MQTT topic to publish logs to.
+        
     config MQTT_SUBSCRIBE_STATUS_TOPIC
         string "MQTT Topic"
         default "coop/led/color"

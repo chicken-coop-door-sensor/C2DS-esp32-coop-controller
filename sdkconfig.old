@@ -338,14 +338,14 @@ CONFIG_ESPTOOLPY_FLASHFREQ_40M=y
 # CONFIG_ESPTOOLPY_FLASHFREQ_20M is not set
 CONFIG_ESPTOOLPY_FLASHFREQ="40m"
 # CONFIG_ESPTOOLPY_FLASHSIZE_1MB is not set
-CONFIG_ESPTOOLPY_FLASHSIZE_2MB=y
-# CONFIG_ESPTOOLPY_FLASHSIZE_4MB is not set
+# CONFIG_ESPTOOLPY_FLASHSIZE_2MB is not set
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
 # CONFIG_ESPTOOLPY_FLASHSIZE_8MB is not set
 # CONFIG_ESPTOOLPY_FLASHSIZE_16MB is not set
 # CONFIG_ESPTOOLPY_FLASHSIZE_32MB is not set
 # CONFIG_ESPTOOLPY_FLASHSIZE_64MB is not set
 # CONFIG_ESPTOOLPY_FLASHSIZE_128MB is not set
-CONFIG_ESPTOOLPY_FLASHSIZE="2MB"
+CONFIG_ESPTOOLPY_FLASHSIZE="4MB"
 # CONFIG_ESPTOOLPY_HEADER_FLASHSIZE_UPDATE is not set
 CONFIG_ESPTOOLPY_BEFORE_RESET=y
 # CONFIG_ESPTOOLPY_BEFORE_NORESET is not set
@@ -368,6 +368,45 @@ CONFIG_PARTITION_TABLE_FILENAME="partitions_two_ota.csv"
 CONFIG_PARTITION_TABLE_OFFSET=0x8000
 CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
+
+#
+# Chicken Coop Door Sensor
+#
+
+#
+# Wi-Fi Configuration
+#
+CONFIG_WIFI_SSID="disconnected_2dot4"
+CONFIG_WIFI_PASSWORD="M0nkum0nku"
+# end of Wi-Fi Configuration
+
+#
+# AWS IoT Configuration
+#
+CONFIG_AWS_IOT_ENDPOINT="mqtts://ay1nsbhuqfhzk-ats.iot.us-east-2.amazonaws.com"
+# end of AWS IoT Configuration
+
+#
+# OTA Configuration
+#
+CONFIG_OTA_URL="https://charlies-farm-ota.s3.us-east-2.amazonaws.com/coop-controller/chicken-coop-door-sensor-controller.bin"
+# end of OTA Configuration
+
+#
+# Status Configuration
+#
+CONFIG_STATUS_TRANSMIT_INTERVAL=10
+# end of Status Configuration
+
+#
+# MQTT Configuration
+#
+CONFIG_MQTT_PUBLISH_STATUS_TOPIC="coop/door/state"
+CONFIG_MQTT_PUBLISH_LOGGING_TOPIC="coop/esp32/logs"
+CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC="coop/led/color"
+CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC="coop/update/controller"
+# end of MQTT Configuration
+# end of Chicken Coop Door Sensor
 
 #
 # Compiler options
