@@ -6,11 +6,10 @@
 #include "cJSON.h"
 #include "led.h"
 #include "state_handler.h"
-#include "mbedtls/debug.h"  // Add this to include mbedtls debug functions
+#include "mbedtls/debug.h"  
 #include "esp_random.h"
 #include "sensors.h"
 #include "ota.h"
-#include "mqtt.h"
 #include "sdkconfig.h"
 #include "logging.h"
 
@@ -81,8 +80,8 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         break;
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-        ESP_LOGI(TAG,"TOPIC=%.*s\r", event->topic_len, event->topic);
-        ESP_LOGI(TAG,"DATA=%.*s\r", event->data_len, event->data);
+        ESP_LOGI(TAG, "TOPIC=%.*s\r", event->topic_len, event->topic);
+        ESP_LOGI(TAG, "DATA=%.*s\r", event->data_len, event->data);
 
         if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC, event->topic_len) == 0) {
             ESP_LOGW(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC);
@@ -131,7 +130,8 @@ void mqtt_app_start(void)
     // mbedtls_debug_set_threshold(0);
 
     char client_id[32];
-    snprintf(client_id, sizeof(client_id), "ESP32_%08" PRIx32, esp_random());
+    snprintf(client_id, sizeof(client_id), "ESP32_CONTROLLER_%08" PRIx32, esp_random());
+    ESP_LOGI(TAG, "Client ID: %s", client_id);
 
     const esp_mqtt_client_config_t mqtt_cfg = {
         .broker = {
@@ -150,7 +150,16 @@ void mqtt_app_start(void)
             .timeout_ms = NETWORK_TIMEOUT_MS,
         },
         .session = {
-            .keepalive = 120,
+            .keepalive = 60,
+            /*
+            .last_will = {
+                .topic = CONFIG_MQTT_LAST_WILL_TOPIC,
+                .msg = "{\"LED\": \"LED_FLASHING_RED\"}",
+                .msg_len = strlen("{\"LED\": \"LED_FLASHING_RED\"}"),
+                .qos = 1,
+                .retain = 1,
+            },
+            */
         },
         .buffer = {
             .size = 4096,

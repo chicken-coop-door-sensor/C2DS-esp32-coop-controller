@@ -16,8 +16,8 @@ static const char *TAG = "MAIN";
 static void tls_debug_callback(void *ctx, int level, const char *file, int line, const char *str)
 {
     // Uncomment to enable verbose debugging
-    // const char *MBEDTLS_DEBUG_LEVEL[] = {"Error", "Warning", "Info", "Debug", "Verbose"};
-    // ESP_LOGI("mbedTLS", "%s: %s:%04d: %s", MBEDTLS_DEBUG_LEVEL[level], file, line, str);
+    const char *MBEDTLS_DEBUG_LEVEL[] = {"Error", "Warning", "Info", "Debug", "Verbose"};
+    ESP_LOGI("mbedTLS", "%s: %s:%04d: %s", MBEDTLS_DEBUG_LEVEL[level], file, line, str);
 }
 
 void app_main(void)
