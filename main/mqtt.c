@@ -156,8 +156,7 @@ void mqtt_app_start(void)
                 .msg = "{\"LED\": \"LED_FLASHING_RED\"}",
                 .msg_len = strlen("{\"LED\": \"LED_FLASHING_RED\"}"),
                 .qos = 1,
-                .retain = 1,
-            },
+             },
         },
         .buffer = {
             .size = 4096,
