@@ -24,11 +24,11 @@ TaskHandle_t logging_task_handle = NULL;  // Task handle for console logging
 // Define NETWORK_TIMEOUT_MS
 #define NETWORK_TIMEOUT_MS 10000  // Example value, set as appropriate for your application
 
-extern const uint8_t chicken_coop_controller_cert[];
-extern const uint8_t chicken_coop_controller_private_key[];
+extern const uint8_t chicken_coop_door_controller_certificate_pem_crt[];
+extern const uint8_t chicken_coop_door_controller_private_pem_key[];
 
-const uint8_t *cert_start = chicken_coop_controller_cert;
-const uint8_t *key_start = chicken_coop_controller_private_key;
+const uint8_t *cert_start = chicken_coop_door_controller_certificate_pem_crt;
+const uint8_t *key_start = chicken_coop_door_controller_private_pem_key;
 
 static const char *TAG = "MQTT";
 bool is_mqtt_connected = false;
@@ -151,7 +151,6 @@ void mqtt_app_start(void)
         },
         .session = {
             .keepalive = 60,
-            /*
             .last_will = {
                 .topic = CONFIG_MQTT_LAST_WILL_TOPIC,
                 .msg = "{\"LED\": \"LED_FLASHING_RED\"}",
@@ -159,7 +158,6 @@ void mqtt_app_start(void)
                 .qos = 1,
                 .retain = 1,
             },
-            */
         },
         .buffer = {
             .size = 4096,

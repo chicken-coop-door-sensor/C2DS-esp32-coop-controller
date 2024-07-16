@@ -3,7 +3,7 @@
 #include <inttypes.h>
 #include "esp_timer.h"
 
-extern const uint8_t amazon_root_ca1[];
+extern const uint8_t AmazonRootCA1_pem[];
 
 static const char *TAG = "OTA";
 
@@ -15,7 +15,7 @@ void ota_task(void *pvParameter)
     esp_err_t ota_finish_err = ESP_OK;
     esp_http_client_config_t config = {
         .url = CONFIG_OTA_URL,
-        .cert_pem = (char *)amazon_root_ca1,
+        .cert_pem = (char *)AmazonRootCA1_pem,
         .timeout_ms = 30000, // Increased timeout
     };
 
