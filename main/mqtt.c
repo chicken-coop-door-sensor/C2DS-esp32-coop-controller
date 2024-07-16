@@ -151,12 +151,14 @@ void mqtt_app_start(void)
         },
         .session = {
             .keepalive = 60,
+            /*
             .last_will = {
                 .topic = CONFIG_MQTT_LAST_WILL_TOPIC,
                 .msg = "{\"LED\": \"LED_FLASHING_RED\"}",
                 .msg_len = strlen("{\"LED\": \"LED_FLASHING_RED\"}"),
                 .qos = 1,
              },
+             */
         },
         .buffer = {
             .size = 4096,
