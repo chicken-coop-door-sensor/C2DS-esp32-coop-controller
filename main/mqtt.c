@@ -150,15 +150,13 @@ void mqtt_app_start(void)
             .timeout_ms = NETWORK_TIMEOUT_MS,
         },
         .session = {
-            .keepalive = 60,
-            /*
-            .last_will = {
-                .topic = CONFIG_MQTT_LAST_WILL_TOPIC,
-                .msg = "{\"LED\": \"LED_FLASHING_RED\"}",
-                .msg_len = strlen("{\"LED\": \"LED_FLASHING_RED\"}"),
-                .qos = 1,
-             },
-             */
+            .keepalive = 300,
+            
+            // .last_will = {
+            //     .topic = CONFIG_MQTT_LAST_WILL_TOPIC,
+            //     .msg = "{\"LED\": \"LED_FLASHING_RED\"}",
+            //  },
+             
         },
         .buffer = {
             .size = 4096,
