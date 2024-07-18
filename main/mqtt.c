@@ -116,7 +116,8 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         } else {
             ESP_LOGI(TAG, "Unknown error type: 0x%x", event->error_handle->error_type);
         }
-        current_led_state = LED_FLASHING_WHITE;
+        current_led_state = LED_FLASHING_GREEN;
+        esp_restart();
         break;
     default:
         ESP_LOGI(TAG, "Other event id:%d", event->event_id);
@@ -170,7 +171,8 @@ void mqtt_app_start(void)
     esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
     if (client == NULL) {
         ESP_LOGE(TAG, "Failed to initialize MQTT client");
-        current_led_state = LED_FLASHING_WHITE;
+        current_led_state = LED_FLASHING_BLUE;
+        esp_restart();
         return;  // Do not proceed if initialization failed
     }
 
