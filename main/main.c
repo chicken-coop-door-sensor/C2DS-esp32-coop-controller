@@ -1,11 +1,12 @@
+#include "cJSON.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "insights.h"
 #include "led.h"
 #include "mbedtls/debug.h"
 #include "mqtt.h"
 #include "nvs_flash.h"
+#include "ota.h"
 #include "sdkconfig.h"
 #include "sensors.h"
 #include "state_handler.h"
@@ -48,10 +49,23 @@ void app_main(void) {
 
     synchronize_time();
 
-    init_insights();
-
     ESP_LOGI(TAG, "Initialize MQTT");
-    mqtt_app_start();
+    esp_mqtt_client_handle_t mqtt_client_handle = mqtt_app_start();
+
+    if (was_booted_after_ota_update()) {
+        char buffer[128];
+        ESP_LOGW(TAG, "Device booted after an OTA update.");
+        cJSON *root = cJSON_CreateObject();
+        sprintf(buffer, "Successful reboot after OTA update");
+        cJSON_AddStringToObject(root, CONFIG_WIFI_HOSTNAME, buffer);
+        const char *json_string = cJSON_Print(root);
+        esp_mqtt_client_publish(mqtt_client_handle, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC,
+                                json_string, 0, 1, 0);
+        free(root);
+        free(json_string);
+    } else {
+        ESP_LOGW(TAG, "Device did not boot after an OTA update.");
+    }
 
     // Infinite loop to prevent exiting app_main
     while (true) {
