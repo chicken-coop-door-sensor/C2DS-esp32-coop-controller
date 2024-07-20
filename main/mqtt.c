@@ -11,7 +11,6 @@
 #include "sensors.h"
 #include "ota.h"
 #include "sdkconfig.h"
-#include "logging.h"
 
 // Declare the global/static variables
 bool mqtt_setup_complete = false;
@@ -19,7 +18,6 @@ bool mqtt_message_received = false;
 
 TaskHandle_t read_sensors_task_handle = NULL;  // Task handle for read_sensors_task
 TaskHandle_t ota_task_handle = NULL;  // Task handle for OTA updating
-TaskHandle_t logging_task_handle = NULL;  // Task handle for console logging 
 
 // Define NETWORK_TIMEOUT_MS
 #define NETWORK_TIMEOUT_MS 10000  // Example value, set as appropriate for your application
@@ -44,7 +42,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         mqtt_setup_complete = true; // MQTT setup is complete
         is_mqtt_connected = true;
-        xTaskCreate(logging_task, "logging_task", 8192, (void *)client, 10, &logging_task_handle);
         ESP_LOGI(TAG, "Subscribing to topic %s", CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC);
         esp_mqtt_client_subscribe(client, CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC, 0);
         ESP_LOGI(TAG, "Subscribing to topic %s", CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC);
@@ -63,10 +60,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         if (ota_task_handle != NULL) {
             vTaskDelete(ota_task_handle);
             ota_task_handle = NULL;
-        }
-        if (logging_task_handle != NULL) {
-            vTaskDelete(logging_task_handle);
-            logging_task_handle = NULL;
         }
         break;
     case MQTT_EVENT_SUBSCRIBED:
@@ -100,7 +93,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
                 cJSON_Delete(json);
             }
         } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC, event->topic_len) == 0) {
-            xTaskCreate(&ota_task, "ota_task", 8192, NULL, 5, &ota_task_handle);
+            xTaskCreate(&ota_task, "ota_task", 8192, (void *)client, 5, &ota_task_handle);
         } else {
             ESP_LOGW(TAG, "Received unknown topic");
         }

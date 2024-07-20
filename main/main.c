@@ -1,31 +1,29 @@
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_log.h"
-#include "nvs_flash.h"
-#include "mbedtls/debug.h"
-#include "wifi.h"
-#include "mqtt.h"
+#include "insights.h"
 #include "led.h"
+#include "mbedtls/debug.h"
+#include "mqtt.h"
+#include "nvs_flash.h"
+#include "sdkconfig.h"
 #include "sensors.h"
 #include "state_handler.h"
-#include "sdkconfig.h"
-
+#include "time_sync.h"
+#include "wifi.h"
 
 static const char *TAG = "MAIN";
 
-static void tls_debug_callback(void *ctx, int level, const char *file, int line, const char *str)
-{
+static void tls_debug_callback(void *ctx, int level, const char *file, int line, const char *str) {
     // Uncomment to enable verbose debugging
     const char *MBEDTLS_DEBUG_LEVEL[] = {"Error", "Warning", "Info", "Debug", "Verbose"};
     ESP_LOGI("mbedTLS", "%s: %s:%04d: %s", MBEDTLS_DEBUG_LEVEL[level], file, line, str);
 }
 
-void app_main(void)
-{
+void app_main(void) {
     esp_log_level_set("MQTT_CLIENT", ESP_LOG_DEBUG);
     esp_log_level_set("esp-tls", ESP_LOG_DEBUG);
     esp_log_level_set("transport", ESP_LOG_DEBUG);
-
 
     ESP_LOGI(TAG, "Initializing LED PWM");
     init_led_pwm();
@@ -45,14 +43,18 @@ void app_main(void)
 
     init_sensors_gpio();
 
-    ESP_LOGI(TAG,"Initialize WiFi");
+    ESP_LOGI(TAG, "Initialize WiFi");
     wifi_init_sta();
 
-    ESP_LOGI(TAG,"Initialize MQTT");
+    synchronize_time();
+
+    init_insights();
+
+    ESP_LOGI(TAG, "Initialize MQTT");
     mqtt_app_start();
 
-     // Infinite loop to prevent exiting app_main
+    // Infinite loop to prevent exiting app_main
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Delay to allow other tasks to run
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay to allow other tasks to run
     }
 }

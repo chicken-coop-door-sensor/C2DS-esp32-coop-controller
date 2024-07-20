@@ -10,10 +10,12 @@ set(SOURCES
     "state_handler.c"
     "sensors.c"
     "ota.c"
-    "logging.c"
+    "time_sync.c"
+    "insights.c"
     "certs/AmazonRootCA1_pem.c"
     "certs/chicken_coop_door_controller_certificate_pem_crt.c"
     "certs/chicken_coop_door_controller_private_pem_key.c"
+    "certs/esp_insights_auth_key.c"  # For diagnostics 
 )
 
 # Specify the directory containing the header files
@@ -23,6 +25,6 @@ set(INCLUDES ".")
 idf_component_register(
     SRCS ${SOURCES}
     INCLUDE_DIRS ${INCLUDES}
-    REQUIRES mbedtls app_update esp_https_ota
+    REQUIRES mbedtls app_update esp_https_ota esp_insights esp_diagnostics
     PRIV_REQUIRES mbedtls mqtt nvs_flash esp_wifi driver json
 )
