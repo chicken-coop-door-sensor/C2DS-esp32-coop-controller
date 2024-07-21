@@ -2,6 +2,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "heartbeat.h"
 #include "led.h"
 #include "mbedtls/debug.h"
 #include "mqtt.h"
@@ -59,13 +60,14 @@ void app_main(void) {
         sprintf(buffer, "Successful reboot after OTA update");
         cJSON_AddStringToObject(root, CONFIG_WIFI_HOSTNAME, buffer);
         const char *json_string = cJSON_Print(root);
-        esp_mqtt_client_publish(mqtt_client_handle, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC,
-                                json_string, 0, 1, 0);
+        esp_mqtt_client_publish(mqtt_client_handle, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC, json_string, 0, 1, 0);
         free(root);
         free(json_string);
     } else {
         ESP_LOGW(TAG, "Device did not boot after an OTA update.");
     }
+
+    xTaskCreate(&heartbeat_task, "heartbeat_task", 4096, (void *)mqtt_client_handle, 4, NULL);
 
     // Infinite loop to prevent exiting app_main
     while (true) {

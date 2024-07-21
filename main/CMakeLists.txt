@@ -11,6 +11,7 @@ set(SOURCES
     "sensors.c"
     "ota.c"
     "time_sync.c"
+    "heartbeat.c"
     "certs/AmazonRootCA1_pem.c"
     "certs/chicken_coop_door_controller_certificate_pem_crt.c"
     "certs/chicken_coop_door_controller_private_pem_key.c"

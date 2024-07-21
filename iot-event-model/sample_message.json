@@ -1,0 +1,12 @@
+{
+    "messages": [
+        {
+            "inputName": "AWS_IoTEvents_Blueprints_Heartbeat_Input1721513961815",
+            "messageId": "3b2ba55e-8feb-4f86-8454-8282ebc649a5",
+            "payload": "{\"status\":\"alive\",\"endpoint\":\"foo\"}",
+            "timestamp": {
+                "timeInMillis": 1721517811587
+            }
+        }
+    ]
+}
