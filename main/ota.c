@@ -91,7 +91,6 @@ void ota_task(void *pvParameter) {
     };
 
     ESP_LOGI(TAG, "Starting OTA with URL: %s", config.url);
-    current_led_state = LED_FLASHING_GREEN;
 
     esp_https_ota_config_t ota_config = {
         .http_config = &config,
@@ -128,6 +127,7 @@ void ota_task(void *pvParameter) {
         err = esp_https_ota_perform(ota_handle);
         if (err == ESP_ERR_HTTPS_OTA_IN_PROGRESS) {
             if (loop_count % LOG_PROGRESS_INTERVAL == 0) {
+                current_led_state = LED_FLASHING_GREEN;
                 convert_seconds(loop_count, &loop_minutes, &loop_seconds);
                 cJSON *root = cJSON_CreateObject();
                 sprintf(buffer, "%02d:%02d elapsed...", loop_minutes, loop_seconds);
