@@ -114,8 +114,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
                     }
                     cJSON_Delete(json);
                 }
-            } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_SNOOPER_TOPIC, event->topic_len) == 0) {
-                ESP_LOGI(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_SNOOPER_TOPIC);
+            } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC, event->topic_len) ==
+                       0) {
+                ESP_LOGI(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC);
                 if (ota_task_handle != NULL) {
                     eTaskState task_state = eTaskGetState(ota_task_handle);
                     if (task_state != eDeleted) {
