@@ -42,6 +42,17 @@ jobs:
             /bin/bash -c ". /opt/esp-idf/export.sh && idf.py fullclean build"
         working-directory: ${{ github.workspace }}
 
+      - name: Get the current commit hash
+        id: vars
+        run: echo ::set-output name=sha_short::$(git rev-parse --short HEAD)
+
+      - name: Tag the commit
+        run: |
+          VERSION_TAG="v1.0.0-${{ steps.vars.outputs.sha_short }}"
+          echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
+          git tag -a $VERSION_TAG -m "Release version $VERSION_TAG"
+          git push origin --tags
+
       - name: Upload Controller to S3
         env:
           S3_BUCKET_NAME: ${{ secrets.AWS_S3_CONTROLLER_BUCKET_NAME }}
@@ -49,7 +60,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-2
         run: |
-          aws s3 cp build/chicken-coop-door-sensor-controller.bin $S3_BUCKET_NAME/chicken-coop-door-sensor-controller.bin
+          aws s3 cp build/firmware.bin $S3_BUCKET_NAME/$VERSION_TAG/
         working-directory: ${{ github.workspace }}
 
       - name: Publish MQTT message
@@ -63,5 +74,5 @@ jobs:
             --endpoint-url $AWS_IOT_ENDPOINT_URL \
             --topic "coop/update/controller" \
             --cli-binary-format raw-in-base64-out \
-            --payload '{"message": "status_request"}'
+            --payload "{\"bucket\": \"${{ secrets.AWS_S3_CONTROLLER_BUCKET_NAME }}/$VERSION_TAG/\"}"
         working-directory: ${{ github.workspace }}
