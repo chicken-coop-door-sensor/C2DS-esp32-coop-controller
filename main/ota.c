@@ -5,6 +5,7 @@
 #include "cJSON.h"
 #include "esp_sleep.h"
 #include "esp_timer.h"
+#include "led.h"
 #include "mqtt.h"
 #include "sdkconfig.h"
 
@@ -90,6 +91,7 @@ void ota_task(void *pvParameter) {
     };
 
     ESP_LOGI(TAG, "Starting OTA with URL: %s", config.url);
+    current_led_state = LED_FLASHING_GREEN;
 
     esp_https_ota_config_t ota_config = {
         .http_config = &config,
@@ -132,8 +134,7 @@ void ota_task(void *pvParameter) {
                 cJSON_AddStringToObject(root, CONFIG_WIFI_HOSTNAME, buffer);
                 const char *json_string = cJSON_Print(root);
                 ESP_LOGW(TAG, "Copying image to %s. %s", update_partition->label, buffer);
-                esp_mqtt_client_publish(my_mqtt_client, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC,
-                                        json_string, 0, 1, 0);
+                esp_mqtt_client_publish(my_mqtt_client, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC, json_string, 0, 1, 0);
                 free(root);
                 free(json_string);
             }
@@ -175,12 +176,9 @@ void ota_task(void *pvParameter) {
             sprintf(buffer, "OTA COMPLETED. Duration: %02d:%02d:%02d", hours, minutes, seconds);
             cJSON_AddStringToObject(root, CONFIG_WIFI_HOSTNAME, buffer);
             const char *json_string = cJSON_Print(root);
-            ESP_LOGI(
-                TAG,
-                "Image copy successful. Duration: %02d:%02d:%02d. Will reboot from partition %s",
-                hours, minutes, seconds, update_partition->label);
-            esp_mqtt_client_publish(my_mqtt_client, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC,
-                                    json_string, 0, 1, 0);
+            ESP_LOGI(TAG, "Image copy successful. Duration: %02d:%02d:%02d. Will reboot from partition %s", hours,
+                     minutes, seconds, update_partition->label);
+            esp_mqtt_client_publish(my_mqtt_client, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC, json_string, 0, 1, 0);
             free(root);
             free(json_string);
             if (my_mqtt_client != NULL) {
