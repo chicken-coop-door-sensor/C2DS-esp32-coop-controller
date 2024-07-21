@@ -4,40 +4,34 @@ static const char *TAG = "LED";
 
 volatile led_state_t current_led_state = LED_OFF;
 
-void init_led_pwm(void)
-{
+void init_led_pwm(void) {
     ESP_LOGI(TAG, "Initializing LED PWM...");
 
-    ledc_timer_config_t ledc_timer = {
-        .speed_mode       = LEDC_LOW_SPEED_MODE,
-        .timer_num        = LEDC_TIMER_0,
-        .duty_resolution  = LEDC_TIMER_13_BIT,
-        .freq_hz          = 5000,
-        .clk_cfg          = LEDC_AUTO_CLK
-    };
+    ledc_timer_config_t ledc_timer = {.speed_mode = LEDC_LOW_SPEED_MODE,
+                                      .timer_num = LEDC_TIMER_0,
+                                      .duty_resolution = LEDC_TIMER_13_BIT,
+                                      .freq_hz = 5000,
+                                      .clk_cfg = LEDC_AUTO_CLK};
     ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
 
-    ledc_channel_config_t ledc_channel = {
-        .channel    = LEDC_CHANNEL_0,
-        .duty       = 0,
-        .gpio_num   = RED_PIN,
-        .speed_mode = LEDC_LOW_SPEED_MODE,
-        .hpoint     = 0,
-        .timer_sel  = LEDC_TIMER_0
-    };
+    ledc_channel_config_t ledc_channel = {.channel = LEDC_CHANNEL_0,
+                                          .duty = 0,
+                                          .gpio_num = RED_PIN,
+                                          .speed_mode = LEDC_LOW_SPEED_MODE,
+                                          .hpoint = 0,
+                                          .timer_sel = LEDC_TIMER_0};
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
 
-    ledc_channel.channel    = LEDC_CHANNEL_1;
-    ledc_channel.gpio_num   = GREEN_PIN;
+    ledc_channel.channel = LEDC_CHANNEL_1;
+    ledc_channel.gpio_num = GREEN_PIN;
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
 
-    ledc_channel.channel    = LEDC_CHANNEL_2;
-    ledc_channel.gpio_num   = BLUE_PIN;
+    ledc_channel.channel = LEDC_CHANNEL_2;
+    ledc_channel.gpio_num = BLUE_PIN;
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
 }
 
-void set_led_color(uint32_t red, uint32_t green, uint32_t blue)
-{
+void set_led_color(uint32_t red, uint32_t green, uint32_t blue) {
     ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, red);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
 
@@ -74,7 +68,7 @@ void pulsate_led_color(uint32_t red, uint32_t green, uint32_t blue) {
 }
 
 void led_task(void *pvParameter) {
-    while(1) {
+    while (1) {
         switch (current_led_state) {
             case LED_OFF:
                 set_led_color(0, 0, 0);
@@ -100,6 +94,15 @@ void led_task(void *pvParameter) {
             case LED_FLASHING_WHITE:
                 flash_led_color(8191, 8191, 8191);  // Flash WHITE
                 break;
+            case LED_FLASHING_YELLOW:
+                flash_led_color(8191, 8191, 0);  // Flash YELLOW
+                break;
+            case LED_FLASHING_CYAN:
+                flash_led_color(0, 8191, 8191);  // Flash CYAN
+                break;
+            case LED_FLASHING_ORANGE:
+                flash_led_color(8191, 4096, 0);  // Flash ORANGE
+                break;
             case LED_PULSATING_RED:
                 pulsate_led_color(8191, 0, 0);
                 break;
@@ -116,6 +119,6 @@ void led_task(void *pvParameter) {
                 set_led_color(0, 0, 0);  // Ensure LED is off
                 break;
         }
-        vTaskDelay(pdMS_TO_TICKS(100)); // Small delay to avoid CPU overuse
+        vTaskDelay(pdMS_TO_TICKS(100));  // Small delay to avoid CPU overuse
     }
 }
