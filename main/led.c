@@ -2,8 +2,6 @@
 
 static const char *TAG = "LED";
 
-volatile led_state_t current_led_state = LED_OFF;
-
 void init_led_pwm(void) {
     ESP_LOGI(TAG, "Initializing LED PWM...");
 
@@ -67,71 +65,6 @@ void pulsate_led_color(uint32_t red, uint32_t green, uint32_t blue) {
     }
 }
 
-void led_task(void *pvParameter) {
-    while (1) {
-        switch (current_led_state) {
-            case LED_OFF:
-                set_led_color(0, 0, 0);
-                break;
-            case LED_RED:
-                set_led_color(8191, 0, 0);
-                break;
-            case LED_GREEN:
-                set_led_color(0, 8191, 0);
-                break;
-            case LED_BLUE:
-                set_led_color(0, 0, 8191);
-                break;
-            case LED_CYAN:
-                set_led_color(0, 8191, 8191);
-                break;
-            case LED_MAGENTA:
-                set_led_color(8191, 0, 8191);
-                break;
-            case LED_FLASHING_RED:
-                flash_led_color(8191, 0, 0);  // Flash RED
-                break;
-            case LED_FLASHING_GREEN:
-                flash_led_color(0, 8191, 0);  // Flash GREEN
-                break;
-            case LED_FLASHING_BLUE:
-                flash_led_color(0, 0, 8191);  // Flash BLUE
-                break;
-            case LED_FLASHING_WHITE:
-                flash_led_color(8191, 8191, 8191);  // Flash WHITE
-                break;
-            case LED_FLASHING_YELLOW:
-                flash_led_color(8191, 8191, 0);  // Flash YELLOW
-                break;
-            case LED_FLASHING_CYAN:
-                flash_led_color(0, 8191, 8191);  // Flash CYAN
-                break;
-            case LED_FLASHING_MAGENTA:
-                flash_led_color(8191, 0, 8191);  // Flash MAGENTA
-                break;
-            case LED_FLASHING_ORANGE:
-                flash_led_color(8191, 4096, 0);  // Flash ORANGE
-                break;
-            case LED_PULSATING_RED:
-                pulsate_led_color(8191, 0, 0);
-                break;
-            case LED_PULSATING_GREEN:
-                pulsate_led_color(0, 8191, 0);
-                break;
-            case LED_PULSATING_BLUE:
-                pulsate_led_color(0, 0, 8191);
-                break;
-            case LED_PULSATING_WHITE:
-                pulsate_led_color(8191, 8191, 8191);
-                break;
-            default:
-                set_led_color(0, 0, 0);  // Ensure LED is off
-                break;
-        }
-        vTaskDelay(pdMS_TO_TICKS(100));  // Small delay to avoid CPU overuse
-    }
-}
-
 // Function to map string to enum
 led_state_t lookup_led_state(const char *str) {
     if (strcmp(str, "LED_OFF") == 0) return LED_OFF;
@@ -161,4 +94,78 @@ void set_led_color_based_on_state(const char *state) {
     current_led_state = lookup_led_state(state);
 
     ESP_LOGI(TAG, "Setting LED color based on state: %s", state);
+}
+
+void set_led(led_state_t new_state) {
+    if (xQueueSend(led_queue, &new_state, portMAX_DELAY) != pdPASS) {
+        // Handle error
+    }
+}
+
+void led_task(void *pvParameter) {
+    led_state_t current_led_state;
+
+    while (1) {
+        if (xQueueReceive(led_queue, &current_led_state, portMAX_DELAY)) {
+            switch (current_led_state) {
+                case LED_OFF:
+                    set_led_color(0, 0, 0);
+                    break;
+                case LED_RED:
+                    set_led_color(8191, 0, 0);
+                    break;
+                case LED_GREEN:
+                    set_led_color(0, 8191, 0);
+                    break;
+                case LED_BLUE:
+                    set_led_color(0, 0, 8191);
+                    break;
+                case LED_CYAN:
+                    set_led_color(0, 8191, 8191);
+                    break;
+                case LED_MAGENTA:
+                    set_led_color(8191, 0, 8191);
+                    break;
+                case LED_FLASHING_RED:
+                    flash_led_color(8191, 0, 0);  // Flash RED
+                    break;
+                case LED_FLASHING_GREEN:
+                    flash_led_color(0, 8191, 0);  // Flash GREEN
+                    break;
+                case LED_FLASHING_BLUE:
+                    flash_led_color(0, 0, 8191);  // Flash BLUE
+                    break;
+                case LED_FLASHING_WHITE:
+                    flash_led_color(8191, 8191, 8191);  // Flash WHITE
+                    break;
+                case LED_FLASHING_YELLOW:
+                    flash_led_color(8191, 8191, 0);  // Flash YELLOW
+                    break;
+                case LED_FLASHING_CYAN:
+                    flash_led_color(0, 8191, 8191);  // Flash CYAN
+                    break;
+                case LED_FLASHING_MAGENTA:
+                    flash_led_color(8191, 0, 8191);  // Flash MAGENTA
+                    break;
+                case LED_FLASHING_ORANGE:
+                    flash_led_color(8191, 4096, 0);  // Flash ORANGE
+                    break;
+                case LED_PULSATING_RED:
+                    pulsate_led_color(8191, 0, 0);
+                    break;
+                case LED_PULSATING_GREEN:
+                    pulsate_led_color(0, 8191, 0);
+                    break;
+                case LED_PULSATING_BLUE:
+                    pulsate_led_color(0, 0, 8191);
+                    break;
+                case LED_PULSATING_WHITE:
+                    pulsate_led_color(8191, 8191, 8191);
+                    break;
+                default:
+                    set_led_color(0, 0, 0);  // Ensure LED is off
+                    break;
+            }
+        }
+    }
 }

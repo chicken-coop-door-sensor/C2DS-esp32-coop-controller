@@ -35,11 +35,12 @@ typedef enum {
     LED_PULSATING_WHITE
 } led_state_t;
 
-extern volatile led_state_t current_led_state;
+extern QueueHandle_t led_queue;
 
 void init_led_pwm(void);
 void set_led_color(uint32_t red, uint32_t green, uint32_t blue);
 void led_task(void *pvParameter);
 void set_led_color_based_on_state(const char *state);
+void set_led(led_state_t new_state);
 
 #endif  // LED_H

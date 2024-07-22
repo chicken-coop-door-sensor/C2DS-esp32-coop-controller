@@ -16,6 +16,7 @@
 
 static const char *TAG = "MAIN";
 QueueHandle_t log_queue = NULL;
+QueueHandle_t led_queue = NULL;
 
 static void tls_debug_callback(void *ctx, int level, const char *file, int line, const char *str) {
     // Uncomment to enable verbose debugging
@@ -31,11 +32,15 @@ void app_main(void) {
     ESP_LOGI(TAG, "Initializing LED PWM");
     init_led_pwm();
 
-    ESP_LOGI(TAG, "Setting LED state to flashing white");
-    current_led_state = LED_FLASHING_WHITE;
+    led_queue = xQueueCreate(10, sizeof(led_state_t));
+    if (led_queue == NULL) {
+        esp_restart();
+    }
 
     ESP_LOGI(TAG, "Creating LED task");
     xTaskCreate(&led_task, "led_task", 4096, NULL, 5, NULL);
+
+    ESP_LOGI(TAG, "Setting LED state to flashing white");
 
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -55,7 +60,7 @@ void app_main(void) {
 
     if (log_queue == NULL) {
         ESP_LOGE(TAG, "Failed to create logger queue");
-        return;
+        esp_restart();
     }
 
     xTaskCreate(&logger_task, "logger_task", 4096, NULL, 5, NULL);
