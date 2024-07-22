@@ -126,7 +126,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
                     // Clean up task handle if it has been deleted
                     ota_task_handle = NULL;
                 }
-                xTaskCreate(&ota_task, "ota_task", 8192, event->data, 5, &ota_task_handle);
+                xTaskCreate(&ota_task, "ota_task", 8192, event, 5, &ota_task_handle);
             }
 
             break;

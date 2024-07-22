@@ -83,15 +83,26 @@ void convert_seconds(int totalSeconds, int *minutes, int *seconds) {
     *seconds = totalSeconds % 60;
 }
 
+void graceful_restart(esp_mqtt_client_handle_t mqtt_client) {
+    if (mqtt_client != NULL) {
+        ESP_LOGI(TAG, "Stopping MQTT client");
+        esp_mqtt_client_stop(mqtt_client);
+    }
+    esp_restart();
+}
+
 void ota_task(void *pvParameter) {
     ESP_LOGI(TAG, "Starting OTA task");
 
-    char buffer[128];
+    char url_buffer[MAX_URL_LENGTH];
+    char ota_progress_buffer[128];
     esp_err_t ota_finish_err = ESP_OK;
 
+    esp_mqtt_event_handle_t mqtt_event = (esp_mqtt_event_handle_t)pvParameter;
+    esp_mqtt_client_handle_t my_mqtt_client = mqtt_event->client;
+
     // Parse the JSON string passed as a parameter
-    const char *json_string = (const char *)pvParameter;
-    cJSON *json = cJSON_Parse(json_string);
+    cJSON *json = cJSON_Parse(mqtt_event->data);
     if (json == NULL) {
         ESP_LOGE(TAG, "Failed to parse JSON string");
         vTaskDelete(NULL);
@@ -115,8 +126,6 @@ void ota_task(void *pvParameter) {
         return;
     }
 
-    char url_buffer[MAX_URL_LENGTH];  // Allocate a buffer to store the URL
-
     // Copy the URL to the buffer
     strncpy(url_buffer, host_key_value, MAX_URL_LENGTH - 1);
 
@@ -139,15 +148,11 @@ void ota_task(void *pvParameter) {
         .http_config = &config,
     };
 
-    ESP_LOGI(TAG, "Getting MQTT client handle");
-    esp_mqtt_client_handle_t my_mqtt_client = (esp_mqtt_client_handle_t)pvParameter;
-
     esp_https_ota_handle_t ota_handle = NULL;
     esp_err_t err = esp_https_ota_begin(&ota_config, &ota_handle);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start OTA: %s", esp_err_to_name(err));
-        vTaskDelete(NULL);
-        return;
+        esp_restart();
     }
 
     int64_t start_time = esp_timer_get_time();
@@ -160,8 +165,7 @@ void ota_task(void *pvParameter) {
     const esp_partition_t *update_partition = esp_ota_get_next_update_partition(NULL);
     if (update_partition == NULL) {
         ESP_LOGE(TAG, "Failed to find update partition");
-        vTaskDelete(NULL);
-        return;
+        graceful_restart(my_mqtt_client);
     }
 
     ESP_LOGI(TAG, "OTA update partition: %s", update_partition->label);
@@ -173,10 +177,10 @@ void ota_task(void *pvParameter) {
                 current_led_state = LED_FLASHING_GREEN;
                 convert_seconds(loop_count, &loop_minutes, &loop_seconds);
                 cJSON *root = cJSON_CreateObject();
-                sprintf(buffer, "%02d:%02d elapsed...", loop_minutes, loop_seconds);
-                cJSON_AddStringToObject(root, CONFIG_WIFI_HOSTNAME, buffer);
+                sprintf(ota_progress_buffer, "%02d:%02d elapsed...", loop_minutes, loop_seconds);
+                cJSON_AddStringToObject(root, CONFIG_WIFI_HOSTNAME, ota_progress_buffer);
                 const char *json_string = cJSON_Print(root);
-                ESP_LOGW(TAG, "Copying image to %s. %s", update_partition->label, buffer);
+                ESP_LOGW(TAG, "Copying image to %s. %s", update_partition->label, ota_progress_buffer);
                 esp_mqtt_client_publish(my_mqtt_client, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC, json_string, 0, 1, 0);
                 cJSON_Delete(root);
                 free((void *)json_string);
@@ -186,7 +190,7 @@ void ota_task(void *pvParameter) {
             ESP_LOGE(TAG, "OTA perform error: %s", esp_err_to_name(err));
             if (++retries > MAX_RETRIES) {
                 ESP_LOGE(TAG, "Max retries reached, aborting OTA");
-                break;
+                graceful_restart(my_mqtt_client);
             }
             ESP_LOGI(TAG, "Retrying OTA...");
         } else {
@@ -203,11 +207,10 @@ void ota_task(void *pvParameter) {
             err = esp_ota_set_boot_partition(update_partition);
             if (err != ESP_OK) {
                 ESP_LOGE(TAG, "Failed to set boot partition: %s", esp_err_to_name(err));
-                vTaskDelete(NULL);
-                return;
+                graceful_restart(my_mqtt_client);
             }
 
-            int64_t end_time = esp_timer_get_time();
+            int64_t end_time = esp_mer_get_time();
             int64_t duration_us = end_time - start_time;
 
             int duration_s = duration_us / 1000000;
@@ -216,26 +219,22 @@ void ota_task(void *pvParameter) {
             int seconds = duration_s % 60;
 
             cJSON *root = cJSON_CreateObject();
-            sprintf(buffer, "OTA COMPLETED. Duration: %02d:%02d:%02d", hours, minutes, seconds);
-            cJSON_AddStringToObject(root, CONFIG_WIFI_HOSTNAME, buffer);
+            sprintf(ota_progress_buffer, "OTA COMPLETED. Duration: %02d:%02d:%02d", hours, minutes, seconds);
+            cJSON_AddStringToObject(root, CONFIG_WIFI_HOSTNAME, ota_progress_buffer);
             const char *json_string = cJSON_Print(root);
             ESP_LOGI(TAG, "Image copy successful. Duration: %02d:%02d:%02d. Will reboot from partition %s", hours,
                      minutes, seconds, update_partition->label);
             esp_mqtt_client_publish(my_mqtt_client, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC, json_string, 0, 1, 0);
             cJSON_Delete(root);
             free((void *)json_string);
-            if (my_mqtt_client != NULL) {
-                ESP_LOGI(TAG, "Stopping MQTT client");
-                esp_mqtt_client_stop(my_mqtt_client);
-            }
-            esp_restart();
+            graceful_restart(my_mqtt_client);
 
         } else {
             ESP_LOGE(TAG, "OTA update failed: %s", esp_err_to_name(ota_finish_err));
+            graceful_restart(my_mqtt_client);
         }
     } else {
         ESP_LOGE(TAG, "Complete data was not received.");
     }
-
-    vTaskDelete(NULL);
+    graceful_restart(my_mqtt_client);
 }
