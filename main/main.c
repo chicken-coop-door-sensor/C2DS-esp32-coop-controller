@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "heartbeat.h"
 #include "led.h"
+#include "logger.h"
 #include "mbedtls/debug.h"
 #include "mqtt.h"
 #include "nvs_flash.h"
@@ -14,6 +15,7 @@
 #include "wifi.h"
 
 static const char *TAG = "MAIN";
+QueueHandle_t log_queue = NULL;
 
 static void tls_debug_callback(void *ctx, int level, const char *file, int line, const char *str) {
     // Uncomment to enable verbose debugging
@@ -48,6 +50,15 @@ void app_main(void) {
     wifi_init_sta();
 
     synchronize_time();
+
+    log_queue = xQueueCreate(LOG_QUEUE_LENGTH, sizeof(log_message_t));
+
+    if (log_queue == NULL) {
+        ESP_LOGE(TAG, "Failed to create logger queue");
+        return;
+    }
+
+    xTaskCreate(&logger_task, "logger_task", 4096, NULL, 5, NULL);
 
     ESP_LOGI(TAG, "Initialize MQTT");
     esp_mqtt_client_handle_t mqtt_client_handle = mqtt_app_start();
