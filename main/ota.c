@@ -253,7 +253,7 @@ void ota_task(void *pvParameter) {
         ota_finish_err = esp_https_ota_finish(ota_handle);
         if (ota_finish_err == ESP_OK) {
             char image_path[64];
-            snprintf(image_path, sizeof(image_path), "/dev/%s/firmware.bin", update_partition->label);
+            snprintf(image_path, sizeof(image_path), "%s/firmware.bin", update_partition->label);
 
             if (!verify_checksum(image_path, expected_checksum)) {
                 send_log_message(ESP_LOG_ERROR, TAG, "Checksum verification failed");

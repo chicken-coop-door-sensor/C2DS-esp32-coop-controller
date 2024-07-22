@@ -66,33 +66,60 @@ void pulsate_led_color(uint32_t red, uint32_t green, uint32_t blue) {
 }
 
 // Function to map string to enum
+// Function to map string to enum
 led_state_t lookup_led_state(const char *str) {
-    if (strcmp(str, "LED_OFF") == 0) return LED_OFF;
-    if (strcmp(str, "LED_RED") == 0) return LED_RED;
-    if (strcmp(str, "LED_GREEN") == 0) return LED_GREEN;
-    if (strcmp(str, "LED_BLUE") == 0) return LED_BLUE;
-    if (strcmp(str, "LED_CYAN") == 0) return LED_CYAN;
-    if (strcmp(str, "LED_MAGENTA") == 0) return LED_MAGENTA;
-    if (strcmp(str, "LED_FLASHING_RED") == 0) return LED_FLASHING_RED;
-    if (strcmp(str, "LED_FLASHING_GREEN") == 0) return LED_FLASHING_GREEN;
-    if (strcmp(str, "LED_FLASHING_BLUE") == 0) return LED_FLASHING_BLUE;
-    if (strcmp(str, "LED_FLASHING_WHITE") == 0) return LED_FLASHING_WHITE;
-    if (strcmp(str, "LED_FLASHING_YELLOW") == 0) return LED_FLASHING_YELLOW;
-    if (strcmp(str, "LED_FLASHING_CYAN") == 0) return LED_FLASHING_CYAN;
-    if (strcmp(str, "LED_FLASHING_MAGENTA") == 0) return LED_FLASHING_MAGENTA;
-    if (strcmp(str, "LED_FLASHING_ORANGE") == 0) return LED_FLASHING_ORANGE;
-    if (strcmp(str, "LED_PULSATING_RED") == 0) return LED_PULSATING_RED;
-    if (strcmp(str, "LED_PULSATING_GREEN") == 0) return LED_PULSATING_GREEN;
-    if (strcmp(str, "LED_PULSATING_BLUE") == 0) return LED_PULSATING_BLUE;
-    if (strcmp(str, "LED_PULSATING_WHITE") == 0) return LED_PULSATING_WHITE;
+    ESP_LOGI(TAG, "Looking up LED value for: %s", str);
 
-    // Default case if no match found
-    return LED_OFF;
+    led_state_t led_state = LED_OFF;
+
+    if (strcmp(str, "LED_OFF") == 0) {
+        led_state = LED_OFF;
+    } else if (strcmp(str, "LED_RED") == 0) {
+        led_state = LED_RED;
+    } else if (strcmp(str, "LED_GREEN") == 0) {
+        led_state = LED_GREEN;
+    } else if (strcmp(str, "LED_BLUE") == 0) {
+        led_state = LED_BLUE;
+    } else if (strcmp(str, "LED_CYAN") == 0) {
+        led_state = LED_CYAN;
+    } else if (strcmp(str, "LED_MAGENTA") == 0) {
+        led_state = LED_MAGENTA;
+    } else if (strcmp(str, "LED_FLASHING_RED") == 0) {
+        led_state = LED_FLASHING_RED;
+    } else if (strcmp(str, "LED_FLASHING_GREEN") == 0) {
+        led_state = LED_FLASHING_GREEN;
+    } else if (strcmp(str, "LED_FLASHING_BLUE") == 0) {
+        led_state = LED_FLASHING_BLUE;
+    } else if (strcmp(str, "LED_FLASHING_WHITE") == 0) {
+        led_state = LED_FLASHING_WHITE;
+    } else if (strcmp(str, "LED_FLASHING_YELLOW") == 0) {
+        led_state = LED_FLASHING_YELLOW;
+    } else if (strcmp(str, "LED_FLASHING_CYAN") == 0) {
+        led_state = LED_FLASHING_CYAN;
+    } else if (strcmp(str, "LED_FLASHING_MAGENTA") == 0) {
+        led_state = LED_FLASHING_MAGENTA;
+    } else if (strcmp(str, "LED_FLASHING_ORANGE") == 0) {
+        led_state = LED_FLASHING_ORANGE;
+    } else if (strcmp(str, "LED_PULSATING_RED") == 0) {
+        led_state = LED_PULSATING_RED;
+    } else if (strcmp(str, "LED_PULSATING_GREEN") == 0) {
+        led_state = LED_PULSATING_GREEN;
+    } else if (strcmp(str, "LED_PULSATING_BLUE") == 0) {
+        led_state = LED_PULSATING_BLUE;
+    } else if (strcmp(str, "LED_PULSATING_WHITE") == 0) {
+        led_state = LED_PULSATING_WHITE;
+    } else {
+        led_state = LED_OFF;
+    }
+
+    ESP_LOGI(TAG, "Returning: %d", led_state);
+
+    return led_state;
 }
 
 void set_led(led_state_t new_state) {
     if (xQueueSend(led_queue, &new_state, portMAX_DELAY) != pdPASS) {
-        // Handle error
+        ESP_LOGW(TAG, "Failed to send message to LED queue");
     }
 }
 
