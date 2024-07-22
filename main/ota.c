@@ -1,6 +1,7 @@
 #include "ota.h"
 
 #include <inttypes.h>
+#include <mbedtls/sha256.h>
 
 #include "cJSON.h"
 #include "esp_log.h"
@@ -16,6 +17,7 @@ extern const uint8_t AmazonRootCA1_pem[];
 static const char *TAG = "OTA";
 
 static const char *HOST_KEY = "controller";
+static const char *CHECKSUM_KEY = "checksum";
 
 #define MAX_RETRIES 5
 #define LOG_PROGRESS_INTERVAL 100
@@ -93,6 +95,40 @@ void graceful_restart(esp_mqtt_client_handle_t mqtt_client) {
     esp_restart();
 }
 
+bool verify_checksum(const char *image_path, const char *expected_checksum) {
+    unsigned char sha256sum[32];
+    unsigned char calculated_sha256[32];
+    size_t len = 0;
+
+    FILE *f = fopen(image_path, "rb");
+    if (!f) {
+        ESP_LOGE(TAG, "Failed to open file for reading: %s", image_path);
+        return false;
+    }
+
+    mbedtls_sha256_context ctx;
+    mbedtls_sha256_init(&ctx);
+    mbedtls_sha256_starts(&ctx, 0);
+
+    while ((len = fread(sha256sum, 1, sizeof(sha256sum), f)) > 0) {
+        mbedtls_sha256_update(&ctx, sha256sum, len);
+    }
+
+    mbedtls_sha256_finish(&ctx, calculated_sha256);
+    mbedtls_sha256_free(&ctx);
+    fclose(f);
+
+    char calculated_checksum[65];
+    for (int i = 0; i < 32; ++i) {
+        sprintf(&calculated_checksum[i * 2], "%02x", calculated_sha256[i]);
+    }
+
+    ESP_LOGI(TAG, "Expected checksum: %s", expected_checksum);
+    ESP_LOGI(TAG, "Calculated checksum: %s", calculated_checksum);
+
+    return strcmp(expected_checksum, calculated_checksum) == 0;
+}
+
 void ota_task(void *pvParameter) {
     send_log_message(ESP_LOG_INFO, TAG, "Starting OTA task");
 
@@ -129,7 +165,24 @@ void ota_task(void *pvParameter) {
     strncpy(url_buffer, host_key_value, MAX_URL_LENGTH - 1);
     url_buffer[MAX_URL_LENGTH - 1] = '\0';
 
+    cJSON *checksum_key = cJSON_GetObjectItem(json, CHECKSUM_KEY);
+    if (checksum_key == NULL) {
+        send_log_message(ESP_LOG_ERROR, TAG, "Key '%s' not found in JSON string", CHECKSUM_KEY);
+        cJSON_Delete(json);
+        vTaskDelete(NULL);
+        return;
+    }
+
+    const char *expected_checksum = cJSON_GetStringValue(checksum_key);
+    if (expected_checksum == NULL) {
+        send_log_message(ESP_LOG_ERROR, TAG, "Failed to get value for '%s'", CHECKSUM_KEY);
+        cJSON_Delete(json);
+        vTaskDelete(NULL);
+        return;
+    }
+
     send_log_message(ESP_LOG_INFO, TAG, "Host key value: %s", url_buffer);
+    send_log_message(ESP_LOG_INFO, TAG, "Expected checksum: %s", expected_checksum);
 
     esp_http_client_config_t config = {
         .url = url_buffer,
@@ -199,6 +252,14 @@ void ota_task(void *pvParameter) {
     if (esp_https_ota_is_complete_data_received(ota_handle)) {
         ota_finish_err = esp_https_ota_finish(ota_handle);
         if (ota_finish_err == ESP_OK) {
+            char image_path[64];
+            snprintf(image_path, sizeof(image_path), "/dev/%s/firmware.bin", update_partition->label);
+
+            if (!verify_checksum(image_path, expected_checksum)) {
+                send_log_message(ESP_LOG_ERROR, TAG, "Checksum verification failed");
+                graceful_restart(my_mqtt_client);
+            }
+
             err = esp_ota_set_boot_partition(update_partition);
             if (err != ESP_OK) {
                 send_log_message(ESP_LOG_ERROR, TAG, "Failed to set boot partition: %s", esp_err_to_name(err));
@@ -223,7 +284,6 @@ void ota_task(void *pvParameter) {
             cJSON_Delete(root);
             free((void *)json_string);
             graceful_restart(my_mqtt_client);
-
         } else {
             send_log_message(ESP_LOG_ERROR, TAG, "OTA update failed: %s", esp_err_to_name(ota_finish_err));
             graceful_restart(my_mqtt_client);
