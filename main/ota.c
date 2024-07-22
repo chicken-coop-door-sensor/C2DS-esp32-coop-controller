@@ -17,6 +17,7 @@ static const char *HOST_KEY = "controller";
 
 #define MAX_RETRIES 5
 #define LOG_PROGRESS_INTERVAL 100
+#define MAX_URL_LENGTH 512  // Define a maximum length for the URL
 
 bool was_booted_after_ota_update(void) {
     esp_reset_reason_t reset_reason = esp_reset_reason();
@@ -114,10 +115,18 @@ void ota_task(void *pvParameter) {
         return;
     }
 
-    ESP_LOGI(TAG, "Host key value: %s", host_key_value);
+    char url_buffer[MAX_URL_LENGTH];  // Allocate a buffer to store the URL
+
+    // Copy the URL to the buffer
+    strncpy(url_buffer, host_key_value, MAX_URL_LENGTH - 1);
+
+    // Ensure the buffer is null-terminated
+    url_buffer[MAX_URL_LENGTH - 1] = '\0';
+
+    ESP_LOGI(TAG, "Host key value: %s", url_buffer);
 
     esp_http_client_config_t config = {
-        .url = host_key_value,  // Use the retrieved value as the OTA URL
+        .url = url_buffer,  // Use the buffer as the OTA URL
         .cert_pem = (char *)AmazonRootCA1_pem,
         .timeout_ms = 30000,  // Increased timeout
     };
