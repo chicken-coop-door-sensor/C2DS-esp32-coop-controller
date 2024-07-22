@@ -53,12 +53,12 @@ jobs:
 
       - name: Upload Controller to S3
         env:
-          S3_BUCKET_NAME: ${{ secrets.AWS_S3_CONTROLLER_BUCKET_NAME }}
+          S3_BUCKET_PATH: ${{ secrets.AWS_S3_BUCKET_CONTROLLER_PATH }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-2
         run: |
-          aws s3 cp build/firmware.bin $S3_BUCKET_NAME/$VERSION_TAG/firmware.bin
+          aws s3 cp build/firmware.bin s3://$S3_BUCKET_PATH/$VERSION_TAG/firmware.bin
         working-directory: ${{ github.workspace }}
 
       - name: Publish MQTT message
@@ -72,5 +72,5 @@ jobs:
             --endpoint-url $AWS_IOT_ENDPOINT_URL \
             --topic "coop/update/controller" \
             --cli-binary-format raw-in-base64-out \
-            --payload "{\"controller\": \"${{ secrets.AWS_S3_CONTROLLER_BUCKET_NAME }}/$VERSION_TAG/\"}"
+            --payload "{\"controller\": \"${{ secrets.AWS_S3_URL_PREFIX }}/${{ secrets.AWS_S3_BUCKET_CONTROLLER_PATH }}/$VERSION_TAG"}"
         working-directory: ${{ github.workspace }}
