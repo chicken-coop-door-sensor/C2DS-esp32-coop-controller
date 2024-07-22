@@ -23,6 +23,8 @@ static const char *CHECKSUM_KEY = "checksum";
 #define LOG_PROGRESS_INTERVAL 100
 #define MAX_URL_LENGTH 512
 #define OTA_PROGRESS_MESSAGE_LENGTH 128
+#define SHA256_CHECKSUM_LENGTH 64
+#define SHA256_CHECKSUM_BUFFER_LENGTH (SHA256_CHECKSUM_LENGTH + 1)
 
 bool was_booted_after_ota_update(void) {
     esp_reset_reason_t reset_reason = esp_reset_reason();
@@ -160,6 +162,7 @@ void ota_task(void *pvParameter) {
 
     char url_buffer[MAX_URL_LENGTH];
     char ota_progress_buffer[OTA_PROGRESS_MESSAGE_LENGTH];
+    char checksum_buffer[SHA256_CHECKSUM_BUFFER_LENGTH];
 
     int64_t start_time = esp_timer_get_time();
     int retries = 0;
@@ -205,8 +208,11 @@ void ota_task(void *pvParameter) {
         graceful_restart(my_mqtt_client);
     }
 
+    strncpy(checksum_buffer, expected_checksum, SHA256_CHECKSUM_LENGTH);
+    checksum_buffer[SHA256_CHECKSUM_LENGTH] = '\0';
+
     send_log_message(ESP_LOG_INFO, TAG, "Host key value: %s", url_buffer);
-    send_log_message(ESP_LOG_INFO, TAG, "Expected checksum: %s", expected_checksum);
+    send_log_message(ESP_LOG_INFO, TAG, "Expected checksum: %s", checksum_buffer);
 
     esp_http_client_config_t config = {
         .url = url_buffer,
