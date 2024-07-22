@@ -1,1 +1,1 @@
-
+[![OTA Reload on Commit](https://github.com/chicken-coop-door-sensor/C2DS-esp32-coop-controller/actions/workflows/mqtt-ota-reload.yml/badge.svg)](https://github.com/chicken-coop-door-sensor/C2DS-esp32-coop-controller/actions/workflows/mqtt-ota-reload.yml)
