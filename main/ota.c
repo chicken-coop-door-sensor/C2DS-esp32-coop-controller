@@ -23,7 +23,6 @@ static const char *CHECKSUM_KEY = "checksum";
 #define LOG_PROGRESS_INTERVAL 100
 #define MAX_URL_LENGTH 512
 #define OTA_PROGRESS_MESSAGE_LENGTH 128
-#define FIRMWARE_IMAGE_PATH_LENGTH 64
 
 bool was_booted_after_ota_update(void) {
     esp_reset_reason_t reset_reason = esp_reset_reason();
@@ -161,7 +160,6 @@ void ota_task(void *pvParameter) {
 
     char url_buffer[MAX_URL_LENGTH];
     char ota_progress_buffer[OTA_PROGRESS_MESSAGE_LENGTH];
-    char image_path[FIRMWARE_IMAGE_PATH_LENGTH];
 
     int64_t start_time = esp_timer_get_time();
     int retries = 0;
