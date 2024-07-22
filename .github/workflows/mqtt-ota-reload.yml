@@ -60,6 +60,10 @@ jobs:
           aws s3 cp build/firmware.bin s3://${{ secrets.AWS_S3_BUCKET }}/coop-controller/$VERSION_TAG/firmware.bin
         working-directory: ${{ github.workspace }}
 
+      - name: Calculate SHA256 checksum
+        id: checksum
+        run: echo "::set-output name=checksum::$(sha256sum build/firmware.bin | awk '{ print $1 }')"
+
       - name: Publish MQTT message
         env:
           AWS_IOT_ENDPOINT_URL: ${{ secrets.AWS_IOT_ENDPOINT_URL }}
@@ -71,5 +75,5 @@ jobs:
             --endpoint-url $AWS_IOT_ENDPOINT_URL \
             --topic "coop/update/controller" \
             --cli-binary-format raw-in-base64-out \
-            --payload "{\"controller\": \"${{ secrets.AWS_S3_URL_PREFIX }}/coop-controller/$VERSION_TAG/firmware.bin\"}"
+            --payload "{\"controller\": \"${{ secrets.AWS_S3_URL_PREFIX }}/coop-controller/$VERSION_TAG/firmware.bin\", \"checksum\": \"${{ steps.checksum.outputs.checksum }}\"}"
         working-directory: ${{ github.workspace }}

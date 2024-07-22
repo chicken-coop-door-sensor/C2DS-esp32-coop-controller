@@ -90,12 +90,6 @@ led_state_t lookup_led_state(const char *str) {
     return LED_OFF;
 }
 
-void set_led_color_based_on_state(const char *state) {
-    current_led_state = lookup_led_state(state);
-
-    ESP_LOGI(TAG, "Setting LED color based on state: %s", state);
-}
-
 void set_led(led_state_t new_state) {
     if (xQueueSend(led_queue, &new_state, portMAX_DELAY) != pdPASS) {
         // Handle error

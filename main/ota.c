@@ -170,7 +170,7 @@ void ota_task(void *pvParameter) {
         err = esp_https_ota_perform(ota_handle);
         if (err == ESP_ERR_HTTPS_OTA_IN_PROGRESS) {
             if (loop_count % LOG_PROGRESS_INTERVAL == 0) {
-                set_led_color_based_on_state("LED_FLASHING_GREEN");
+                set_led(LED_FLASHING_GREEN);
                 convert_seconds(loop_count, &loop_minutes, &loop_seconds);
                 cJSON *root = cJSON_CreateObject();
                 sprintf(ota_progress_buffer, "%02d:%02d elapsed...", loop_minutes, loop_seconds);
