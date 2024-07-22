@@ -82,6 +82,12 @@ void led_task(void *pvParameter) {
             case LED_BLUE:
                 set_led_color(0, 0, 8191);
                 break;
+            case LED_CYAN:
+                set_led_color(0, 8191, 8191);
+                break;
+            case LED_MAGENTA:
+                set_led_color(8191, 0, 8191);
+                break;
             case LED_FLASHING_RED:
                 flash_led_color(8191, 0, 0);  // Flash RED
                 break;
@@ -99,6 +105,9 @@ void led_task(void *pvParameter) {
                 break;
             case LED_FLASHING_CYAN:
                 flash_led_color(0, 8191, 8191);  // Flash CYAN
+                break;
+            case LED_FLASHING_MAGENTA:
+                flash_led_color(8191, 0, 8191);  // Flash MAGENTA
                 break;
             case LED_FLASHING_ORANGE:
                 flash_led_color(8191, 4096, 0);  // Flash ORANGE
@@ -121,4 +130,35 @@ void led_task(void *pvParameter) {
         }
         vTaskDelay(pdMS_TO_TICKS(100));  // Small delay to avoid CPU overuse
     }
+}
+
+// Function to map string to enum
+led_state_t lookup_led_state(const char *str) {
+    if (strcmp(str, "LED_OFF") == 0) return LED_OFF;
+    if (strcmp(str, "LED_RED") == 0) return LED_RED;
+    if (strcmp(str, "LED_GREEN") == 0) return LED_GREEN;
+    if (strcmp(str, "LED_BLUE") == 0) return LED_BLUE;
+    if (strcmp(str, "LED_CYAN") == 0) return LED_CYAN;
+    if (strcmp(str, "LED_MAGENTA") == 0) return LED_MAGENTA;
+    if (strcmp(str, "LED_FLASHING_RED") == 0) return LED_FLASHING_RED;
+    if (strcmp(str, "LED_FLASHING_GREEN") == 0) return LED_FLASHING_GREEN;
+    if (strcmp(str, "LED_FLASHING_BLUE") == 0) return LED_FLASHING_BLUE;
+    if (strcmp(str, "LED_FLASHING_WHITE") == 0) return LED_FLASHING_WHITE;
+    if (strcmp(str, "LED_FLASHING_YELLOW") == 0) return LED_FLASHING_YELLOW;
+    if (strcmp(str, "LED_FLASHING_CYAN") == 0) return LED_FLASHING_CYAN;
+    if (strcmp(str, "LED_FLASHING_MAGENTA") == 0) return LED_FLASHING_MAGENTA;
+    if (strcmp(str, "LED_FLASHING_ORANGE") == 0) return LED_FLASHING_ORANGE;
+    if (strcmp(str, "LED_PULSATING_RED") == 0) return LED_PULSATING_RED;
+    if (strcmp(str, "LED_PULSATING_GREEN") == 0) return LED_PULSATING_GREEN;
+    if (strcmp(str, "LED_PULSATING_BLUE") == 0) return LED_PULSATING_BLUE;
+    if (strcmp(str, "LED_PULSATING_WHITE") == 0) return LED_PULSATING_WHITE;
+
+    // Default case if no match found
+    return LED_OFF;
+}
+
+void set_led_color_based_on_state(const char *state) {
+    current_led_state = lookup_led_state(state);
+
+    ESP_LOGI(TAG, "Setting LED color based on state: %s", state);
 }

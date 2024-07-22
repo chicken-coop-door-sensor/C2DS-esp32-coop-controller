@@ -10,7 +10,6 @@
 #include "ota.h"
 #include "sdkconfig.h"
 #include "sensors.h"
-#include "state_handler.h"
 #include "time_sync.h"
 #include "wifi.h"
 

@@ -11,7 +11,6 @@
 #include "ota.h"
 #include "sdkconfig.h"
 #include "sensors.h"
-#include "state_handler.h"
 
 // Declare the global/static variables
 bool mqtt_setup_complete = false;

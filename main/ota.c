@@ -8,7 +8,6 @@
 #include "led.h"
 #include "mqtt.h"
 #include "sdkconfig.h"
-#include "state_handler.h"
 
 extern const uint8_t AmazonRootCA1_pem[];
 

@@ -7,7 +7,6 @@ set(SOURCES
     "wifi.c" 
     "mqtt.c" 
     "led.c" 
-    "state_handler.c"
     "sensors.c"
     "ota.c"
     "time_sync.c"
