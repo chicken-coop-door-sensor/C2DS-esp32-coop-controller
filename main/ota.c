@@ -21,7 +21,9 @@ static const char *CHECKSUM_KEY = "checksum";
 
 #define MAX_RETRIES 5
 #define LOG_PROGRESS_INTERVAL 100
-#define MAX_URL_LENGTH 512  // Define a maximum length for the URL
+#define MAX_URL_LENGTH 512
+#define OTA_PROGRESS_MESSAGE_LENGTH 128
+#define FIRMWARE_IMAGE_PATH_LENGTH 64
 
 bool was_booted_after_ota_update(void) {
     esp_reset_reason_t reset_reason = esp_reset_reason();
@@ -95,36 +97,61 @@ void graceful_restart(esp_mqtt_client_handle_t mqtt_client) {
     esp_restart();
 }
 
-bool verify_checksum(const char *image_path, const char *expected_checksum) {
-    unsigned char sha256sum[32];
-    unsigned char calculated_sha256[32];
-    size_t len = 0;
+bool verify_checksum(const char *expected_checksum) {
+    const esp_partition_t *ota_partition = esp_ota_get_next_update_partition(NULL);
+    if (ota_partition == NULL) {
+        send_log_message(ESP_LOG_ERROR, TAG, "No OTA partition found");
+        return false;
+    }
 
-    FILE *f = fopen(image_path, "rb");
-    if (!f) {
-        ESP_LOGE(TAG, "Failed to open file for reading: %s", image_path);
+    send_log_message(ESP_LOG_INFO, TAG, "Reading from partition\nsubtype:%d\noffset:0x%x\nlabel: %s",
+                     ota_partition->subtype, ota_partition->address, ota_partition->label);
+
+    // Allocate buffer for reading data
+    const size_t buffer_size = 4096;
+    uint8_t *buffer = malloc(buffer_size);
+    if (buffer == NULL) {
+        send_log_message(ESP_LOG_ERROR, TAG, "Failed to allocate buffer");
         return false;
     }
 
     mbedtls_sha256_context ctx;
     mbedtls_sha256_init(&ctx);
-    mbedtls_sha256_starts(&ctx, 0);
+    mbedtls_sha256_starts(&ctx, 0);  // 0 means SHA-256 (not SHA-224)
 
-    while ((len = fread(sha256sum, 1, sizeof(sha256sum), f)) > 0) {
-        mbedtls_sha256_update(&ctx, sha256sum, len);
+    size_t offset = 0;
+    size_t read_size = buffer_size;
+    esp_err_t err;
+
+    while (offset < ota_partition->size) {
+        if (offset + buffer_size > ota_partition->size) {
+            read_size = ota_partition->size - offset;
+        }
+
+        err = esp_partition_read(ota_partition, offset, buffer, read_size);
+        if (err != ESP_OK) {
+            send_log_message(ESP_LOG_ERROR, TAG, "Failed to read partition data (%s)", esp_err_to_name(err));
+            free(buffer);
+            mbedtls_sha256_free(&ctx);
+            return false;
+        }
+
+        mbedtls_sha256_update(&ctx, buffer, read_size);
+        offset += read_size;
     }
 
+    uint8_t calculated_sha256[32];
     mbedtls_sha256_finish(&ctx, calculated_sha256);
     mbedtls_sha256_free(&ctx);
-    fclose(f);
+    free(buffer);
 
     char calculated_checksum[65];
     for (int i = 0; i < 32; ++i) {
         sprintf(&calculated_checksum[i * 2], "%02x", calculated_sha256[i]);
     }
 
-    ESP_LOGI(TAG, "Expected checksum: %s", expected_checksum);
-    ESP_LOGI(TAG, "Calculated checksum: %s", calculated_checksum);
+    send_log_message(ESP_LOG_INFO, TAG, "Expected checksum: %s", expected_checksum);
+    send_log_message(ESP_LOG_INFO, TAG, "Calculated checksum: %s", calculated_checksum);
 
     return strcmp(expected_checksum, calculated_checksum) == 0;
 }
@@ -133,7 +160,15 @@ void ota_task(void *pvParameter) {
     send_log_message(ESP_LOG_INFO, TAG, "Starting OTA task");
 
     char url_buffer[MAX_URL_LENGTH];
-    char ota_progress_buffer[128];
+    char ota_progress_buffer[OTA_PROGRESS_MESSAGE_LENGTH];
+    char image_path[FIRMWARE_IMAGE_PATH_LENGTH];
+
+    int64_t start_time = esp_timer_get_time();
+    int retries = 0;
+    int loop_count = 0;
+    int loop_minutes = 0;
+    int loop_seconds = 0;
+
     esp_err_t ota_finish_err = ESP_OK;
 
     esp_mqtt_event_handle_t mqtt_event = (esp_mqtt_event_handle_t)pvParameter;
@@ -142,24 +177,19 @@ void ota_task(void *pvParameter) {
     cJSON *json = cJSON_Parse(mqtt_event->data);
     if (json == NULL) {
         send_log_message(ESP_LOG_ERROR, TAG, "Failed to parse JSON string");
-        vTaskDelete(NULL);
-        return;
+        graceful_restart(my_mqtt_client);
     }
 
     cJSON *host_key = cJSON_GetObjectItem(json, HOST_KEY);
     if (host_key == NULL) {
         send_log_message(ESP_LOG_ERROR, TAG, "Key '%s' not found in JSON string", HOST_KEY);
-        cJSON_Delete(json);
-        vTaskDelete(NULL);
-        return;
+        graceful_restart(my_mqtt_client);
     }
 
     const char *host_key_value = cJSON_GetStringValue(host_key);
     if (host_key_value == NULL) {
         send_log_message(ESP_LOG_ERROR, TAG, "Failed to get value for '%s'", HOST_KEY);
-        cJSON_Delete(json);
-        vTaskDelete(NULL);
-        return;
+        graceful_restart(my_mqtt_client);
     }
 
     strncpy(url_buffer, host_key_value, MAX_URL_LENGTH - 1);
@@ -168,17 +198,13 @@ void ota_task(void *pvParameter) {
     cJSON *checksum_key = cJSON_GetObjectItem(json, CHECKSUM_KEY);
     if (checksum_key == NULL) {
         send_log_message(ESP_LOG_ERROR, TAG, "Key '%s' not found in JSON string", CHECKSUM_KEY);
-        cJSON_Delete(json);
-        vTaskDelete(NULL);
-        return;
+        graceful_restart(my_mqtt_client);
     }
 
     const char *expected_checksum = cJSON_GetStringValue(checksum_key);
     if (expected_checksum == NULL) {
         send_log_message(ESP_LOG_ERROR, TAG, "Failed to get value for '%s'", CHECKSUM_KEY);
-        cJSON_Delete(json);
-        vTaskDelete(NULL);
-        return;
+        graceful_restart(my_mqtt_client);
     }
 
     send_log_message(ESP_LOG_INFO, TAG, "Host key value: %s", url_buffer);
@@ -202,14 +228,8 @@ void ota_task(void *pvParameter) {
     esp_err_t err = esp_https_ota_begin(&ota_config, &ota_handle);
     if (err != ESP_OK) {
         send_log_message(ESP_LOG_ERROR, TAG, "Failed to start OTA: %s", esp_err_to_name(err));
-        esp_restart();
+        graceful_restart(my_mqtt_client);
     }
-
-    int64_t start_time = esp_timer_get_time();
-    int retries = 0;
-    int loop_count = 0;
-    int loop_minutes = 0;
-    int loop_seconds = 0;
 
     const esp_partition_t *update_partition = esp_ota_get_next_update_partition(NULL);
     if (update_partition == NULL) {
@@ -252,10 +272,7 @@ void ota_task(void *pvParameter) {
     if (esp_https_ota_is_complete_data_received(ota_handle)) {
         ota_finish_err = esp_https_ota_finish(ota_handle);
         if (ota_finish_err == ESP_OK) {
-            char image_path[64];
-            snprintf(image_path, sizeof(image_path), "%s/firmware.bin", update_partition->label);
-
-            if (!verify_checksum(image_path, expected_checksum)) {
+            if (!verify_checksum(expected_checksum)) {
                 send_log_message(ESP_LOG_ERROR, TAG, "Checksum verification failed");
                 graceful_restart(my_mqtt_client);
             }
@@ -281,12 +298,8 @@ void ota_task(void *pvParameter) {
                              "Image copy successful. Duration: %02d:%02d:%02d. Will reboot from partition %s", hours,
                              minutes, seconds, update_partition->label);
             esp_mqtt_client_publish(my_mqtt_client, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC, json_string, 0, 1, 0);
-            cJSON_Delete(root);
-            free((void *)json_string);
-            graceful_restart(my_mqtt_client);
         } else {
             send_log_message(ESP_LOG_ERROR, TAG, "OTA update failed: %s", esp_err_to_name(ota_finish_err));
-            graceful_restart(my_mqtt_client);
         }
     } else {
         send_log_message(ESP_LOG_ERROR, TAG, "Complete data was not received.");
