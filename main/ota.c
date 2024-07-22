@@ -210,7 +210,7 @@ void ota_task(void *pvParameter) {
                 graceful_restart(my_mqtt_client);
             }
 
-            int64_t end_time = esp_mer_get_time();
+            int64_t end_time = esp_timer_get_time();
             int64_t duration_us = end_time - start_time;
 
             int duration_s = duration_us / 1000000;
