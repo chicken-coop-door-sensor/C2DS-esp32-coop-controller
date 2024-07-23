@@ -69,6 +69,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-2
         run: |
+          echo aws iot-data publish \
+            --endpoint-url $AWS_IOT_ENDPOINT_URL \
+            --topic "coop/update/controller" \
+            --cli-binary-format raw-in-base64-out \
+            --payload "{\"controller\": \"${{ secrets.AWS_S3_URL_PREFIX }}/coop-controller/$VERSION_TAG/firmware.bin\"}"
           aws iot-data publish \
             --endpoint-url $AWS_IOT_ENDPOINT_URL \
             --topic "coop/update/controller" \
