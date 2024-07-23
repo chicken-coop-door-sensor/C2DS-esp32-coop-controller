@@ -270,11 +270,6 @@ void ota_task(void *pvParameter) {
     if (esp_https_ota_is_complete_data_received(ota_handle)) {
         ota_finish_err = esp_https_ota_finish(ota_handle);
         if (ota_finish_err == ESP_OK) {
-            if (!verify_checksum(expected_checksum_buffer)) {
-                send_log_message(ESP_LOG_ERROR, TAG, "Checksum verification failed");
-                // graceful_restart(my_mqtt_client); // Uncomment this if you want to restart on checksum failure
-            }
-
             err = esp_ota_set_boot_partition(update_partition);
             if (err != ESP_OK) {
                 send_log_message(ESP_LOG_ERROR, TAG, "Failed to set boot partition: %s", esp_err_to_name(err));
