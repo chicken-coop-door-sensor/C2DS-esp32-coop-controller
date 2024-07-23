@@ -11,7 +11,12 @@
             "path": "/bin/zsh",
             "args": [
                 "-c",
-                "source ~/.zshrc && setidf && export COMPONENT_KCONFIGS_DIR=$(pwd)/managed_components && clear && exec zsh"
+                "source ~/.zshrc && ",
+                "setidf && ",
+                "export COMPONENT_KCONFIGS_DIR=$(pwd)components && ",
+                "export EXTRA_COMPONENT_DIRS=$(pwd)components && ",
+                "clear && ",
+                "exec zsh"
             ]
         }
     },
