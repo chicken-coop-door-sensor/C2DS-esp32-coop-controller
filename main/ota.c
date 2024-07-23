@@ -162,7 +162,7 @@ void ota_task(void *pvParameter) {
 
     char url_buffer[MAX_URL_LENGTH];
     char ota_progress_buffer[OTA_PROGRESS_MESSAGE_LENGTH];
-    char checksum_buffer[SHA256_CHECKSUM_BUFFER_LENGTH];
+    char expected_checksum_buffer[SHA256_CHECKSUM_BUFFER_LENGTH];
 
     int64_t start_time = esp_timer_get_time();
     int retries = 0;
@@ -208,11 +208,11 @@ void ota_task(void *pvParameter) {
         graceful_restart(my_mqtt_client);
     }
 
-    strncpy(checksum_buffer, expected_checksum, SHA256_CHECKSUM_LENGTH);
-    checksum_buffer[SHA256_CHECKSUM_LENGTH] = '\0';
+    strncpy(expected_checksum_buffer, expected_checksum, SHA256_CHECKSUM_LENGTH);
+    expected_checksum_buffer[SHA256_CHECKSUM_LENGTH] = '\0';
 
     send_log_message(ESP_LOG_INFO, TAG, "Host key value: %s", url_buffer);
-    send_log_message(ESP_LOG_INFO, TAG, "Expected checksum: %s", checksum_buffer);
+    send_log_message(ESP_LOG_INFO, TAG, "Expected checksum: %s", expected_checksum_buffer);
 
     esp_http_client_config_t config = {
         .url = url_buffer,
@@ -276,7 +276,7 @@ void ota_task(void *pvParameter) {
     if (esp_https_ota_is_complete_data_received(ota_handle)) {
         ota_finish_err = esp_https_ota_finish(ota_handle);
         if (ota_finish_err == ESP_OK) {
-            if (!verify_checksum(expected_checksum)) {
+            if (!verify_checksum(expected_checksum_buffer)) {
                 send_log_message(ESP_LOG_ERROR, TAG, "Checksum verification failed");
                 graceful_restart(my_mqtt_client);
             }

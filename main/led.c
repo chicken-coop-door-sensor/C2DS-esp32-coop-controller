@@ -1,6 +1,7 @@
 #include "led.h"
 
 static const char *TAG = "LED";
+led_state_t current_led_state = LED_OFF;
 
 void init_led_pwm(void) {
     ESP_LOGI(TAG, "Initializing LED PWM...");
@@ -124,69 +125,70 @@ void set_led(led_state_t new_state) {
 }
 
 void led_task(void *pvParameter) {
-    led_state_t current_led_state;
+    led_state_t new_led_state = LED_OFF;
 
     while (1) {
-        if (xQueueReceive(led_queue, &current_led_state, portMAX_DELAY)) {
-            switch (current_led_state) {
-                case LED_OFF:
-                    set_led_color(0, 0, 0);
-                    break;
-                case LED_RED:
-                    set_led_color(8191, 0, 0);
-                    break;
-                case LED_GREEN:
-                    set_led_color(0, 8191, 0);
-                    break;
-                case LED_BLUE:
-                    set_led_color(0, 0, 8191);
-                    break;
-                case LED_CYAN:
-                    set_led_color(0, 8191, 8191);
-                    break;
-                case LED_MAGENTA:
-                    set_led_color(8191, 0, 8191);
-                    break;
-                case LED_FLASHING_RED:
-                    flash_led_color(8191, 0, 0);  // Flash RED
-                    break;
-                case LED_FLASHING_GREEN:
-                    flash_led_color(0, 8191, 0);  // Flash GREEN
-                    break;
-                case LED_FLASHING_BLUE:
-                    flash_led_color(0, 0, 8191);  // Flash BLUE
-                    break;
-                case LED_FLASHING_WHITE:
-                    flash_led_color(8191, 8191, 8191);  // Flash WHITE
-                    break;
-                case LED_FLASHING_YELLOW:
-                    flash_led_color(8191, 8191, 0);  // Flash YELLOW
-                    break;
-                case LED_FLASHING_CYAN:
-                    flash_led_color(0, 8191, 8191);  // Flash CYAN
-                    break;
-                case LED_FLASHING_MAGENTA:
-                    flash_led_color(8191, 0, 8191);  // Flash MAGENTA
-                    break;
-                case LED_FLASHING_ORANGE:
-                    flash_led_color(8191, 4096, 0);  // Flash ORANGE
-                    break;
-                case LED_PULSATING_RED:
-                    pulsate_led_color(8191, 0, 0);
-                    break;
-                case LED_PULSATING_GREEN:
-                    pulsate_led_color(0, 8191, 0);
-                    break;
-                case LED_PULSATING_BLUE:
-                    pulsate_led_color(0, 0, 8191);
-                    break;
-                case LED_PULSATING_WHITE:
-                    pulsate_led_color(8191, 8191, 8191);
-                    break;
-                default:
-                    set_led_color(0, 0, 0);  // Ensure LED is off
-                    break;
-            }
+        if (xQueueReceive(led_queue, &new_led_state, portMAX_DELAY)) {
+            current_led_state = new_led_state;
+        }
+        switch (current_led_state) {
+            case LED_OFF:
+                set_led_color(0, 0, 0);
+                break;
+            case LED_RED:
+                set_led_color(8191, 0, 0);
+                break;
+            case LED_GREEN:
+                set_led_color(0, 8191, 0);
+                break;
+            case LED_BLUE:
+                set_led_color(0, 0, 8191);
+                break;
+            case LED_CYAN:
+                set_led_color(0, 8191, 8191);
+                break;
+            case LED_MAGENTA:
+                set_led_color(8191, 0, 8191);
+                break;
+            case LED_FLASHING_RED:
+                flash_led_color(8191, 0, 0);  // Flash RED
+                break;
+            case LED_FLASHING_GREEN:
+                flash_led_color(0, 8191, 0);  // Flash GREEN
+                break;
+            case LED_FLASHING_BLUE:
+                flash_led_color(0, 0, 8191);  // Flash BLUE
+                break;
+            case LED_FLASHING_WHITE:
+                flash_led_color(8191, 8191, 8191);  // Flash WHITE
+                break;
+            case LED_FLASHING_YELLOW:
+                flash_led_color(8191, 8191, 0);  // Flash YELLOW
+                break;
+            case LED_FLASHING_CYAN:
+                flash_led_color(0, 8191, 8191);  // Flash CYAN
+                break;
+            case LED_FLASHING_MAGENTA:
+                flash_led_color(8191, 0, 8191);  // Flash MAGENTA
+                break;
+            case LED_FLASHING_ORANGE:
+                flash_led_color(8191, 4096, 0);  // Flash ORANGE
+                break;
+            case LED_PULSATING_RED:
+                pulsate_led_color(8191, 0, 0);
+                break;
+            case LED_PULSATING_GREEN:
+                pulsate_led_color(0, 8191, 0);
+                break;
+            case LED_PULSATING_BLUE:
+                pulsate_led_color(0, 0, 8191);
+                break;
+            case LED_PULSATING_WHITE:
+                pulsate_led_color(8191, 8191, 8191);
+                break;
+            default:
+                set_led_color(0, 0, 0);  // Ensure LED is off
+                break;
         }
     }
 }

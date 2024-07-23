@@ -36,6 +36,7 @@ typedef enum {
 } led_state_t;
 
 extern QueueHandle_t led_queue;
+extern led_state_t current_led_state;
 
 void init_led_pwm(void);
 void set_led_color(uint32_t red, uint32_t green, uint32_t blue);
