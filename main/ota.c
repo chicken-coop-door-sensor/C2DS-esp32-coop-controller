@@ -279,7 +279,7 @@ void ota_task(void *pvParameter) {
         if (ota_finish_err == ESP_OK) {
             if (!verify_checksum(expected_checksum_buffer)) {
                 send_log_message(ESP_LOG_ERROR, TAG, "Checksum verification failed");
-                graceful_restart(my_mqtt_client);
+                // graceful_restart(my_mqtt_client);
             }
 
             err = esp_ota_set_boot_partition(update_partition);
