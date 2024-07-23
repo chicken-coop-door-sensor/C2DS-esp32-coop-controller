@@ -3,6 +3,50 @@
 static const char *TAG = "LED";
 led_state_t current_led_state = LED_OFF;
 
+// Lookup table for string to enum conversion
+typedef struct {
+    const char *str;
+    led_state_t state;
+} led_lookup_t;
+
+const led_lookup_t led_string_to_enum_table[] = {{"LED_OFF", LED_OFF},
+                                                 {"LED_RED", LED_RED},
+                                                 {"LED_GREEN", LED_GREEN},
+                                                 {"LED_BLUE", LED_BLUE},
+                                                 {"LED_CYAN", LED_CYAN},
+                                                 {"LED_MAGENTA", LED_MAGENTA},
+                                                 {"LED_FLASHING_RED", LED_FLASHING_RED},
+                                                 {"LED_FLASHING_GREEN", LED_FLASHING_GREEN},
+                                                 {"LED_FLASHING_BLUE", LED_FLASHING_BLUE},
+                                                 {"LED_FLASHING_WHITE", LED_FLASHING_WHITE},
+                                                 {"LED_FLASHING_YELLOW", LED_FLASHING_YELLOW},
+                                                 {"LED_FLASHING_CYAN", LED_FLASHING_CYAN},
+                                                 {"LED_FLASHING_MAGENTA", LED_FLASHING_MAGENTA},
+                                                 {"LED_FLASHING_ORANGE", LED_FLASHING_ORANGE},
+                                                 {"LED_PULSATING_RED", LED_PULSATING_RED},
+                                                 {"LED_PULSATING_GREEN", LED_PULSATING_GREEN},
+                                                 {"LED_PULSATING_BLUE", LED_PULSATING_BLUE},
+                                                 {"LED_PULSATING_WHITE", LED_PULSATING_WHITE}};
+
+const char *led_enum_to_string_table[] = {"LED_OFF",
+                                          "LED_RED",
+                                          "LED_GREEN",
+                                          "LED_BLUE",
+                                          "LED_CYAN",
+                                          "LED_MAGENTA",
+                                          "LED_FLASHING_RED",
+                                          "LED_FLASHING_GREEN",
+                                          "LED_FLASHING_BLUE",
+                                          "LED_FLASHING_WHITE",
+                                          "LED_FLASHING_YELLOW",
+                                          "LED_FLASHING_CYAN",
+                                          "LED_FLASHING_MAGENTA",
+                                          "LED_FLASHING_ORANGE",
+                                          "LED_PULSATING_RED",
+                                          "LED_PULSATING_GREEN",
+                                          "LED_PULSATING_BLUE",
+                                          "LED_PULSATING_WHITE"};
+
 void init_led_pwm(void) {
     ESP_LOGI(TAG, "Initializing LED PWM...");
 
@@ -70,95 +114,23 @@ void pulsate_led_color(uint32_t red, uint32_t green, uint32_t blue) {
 led_state_t convert_led_string_to_enum(const char *str) {
     ESP_LOGI(TAG, "Looking up LED value for: %s", str);
 
-    led_state_t led_state = LED_OFF;
-
-    if (strcmp(str, "LED_OFF") == 0) {
-        led_state = LED_OFF;
-    } else if (strcmp(str, "LED_RED") == 0) {
-        led_state = LED_RED;
-    } else if (strcmp(str, "LED_GREEN") == 0) {
-        led_state = LED_GREEN;
-    } else if (strcmp(str, "LED_BLUE") == 0) {
-        led_state = LED_BLUE;
-    } else if (strcmp(str, "LED_CYAN") == 0) {
-        led_state = LED_CYAN;
-    } else if (strcmp(str, "LED_MAGENTA") == 0) {
-        led_state = LED_MAGENTA;
-    } else if (strcmp(str, "LED_FLASHING_RED") == 0) {
-        led_state = LED_FLASHING_RED;
-    } else if (strcmp(str, "LED_FLASHING_GREEN") == 0) {
-        led_state = LED_FLASHING_GREEN;
-    } else if (strcmp(str, "LED_FLASHING_BLUE") == 0) {
-        led_state = LED_FLASHING_BLUE;
-    } else if (strcmp(str, "LED_FLASHING_WHITE") == 0) {
-        led_state = LED_FLASHING_WHITE;
-    } else if (strcmp(str, "LED_FLASHING_YELLOW") == 0) {
-        led_state = LED_FLASHING_YELLOW;
-    } else if (strcmp(str, "LED_FLASHING_CYAN") == 0) {
-        led_state = LED_FLASHING_CYAN;
-    } else if (strcmp(str, "LED_FLASHING_MAGENTA") == 0) {
-        led_state = LED_FLASHING_MAGENTA;
-    } else if (strcmp(str, "LED_FLASHING_ORANGE") == 0) {
-        led_state = LED_FLASHING_ORANGE;
-    } else if (strcmp(str, "LED_PULSATING_RED") == 0) {
-        led_state = LED_PULSATING_RED;
-    } else if (strcmp(str, "LED_PULSATING_GREEN") == 0) {
-        led_state = LED_PULSATING_GREEN;
-    } else if (strcmp(str, "LED_PULSATING_BLUE") == 0) {
-        led_state = LED_PULSATING_BLUE;
-    } else if (strcmp(str, "LED_PULSATING_WHITE") == 0) {
-        led_state = LED_PULSATING_WHITE;
-    } else {
-        led_state = LED_OFF;
+    for (int i = 0; i < sizeof(led_string_to_enum_table) / sizeof(led_lookup_t); i++) {
+        if (strcmp(str, led_string_to_enum_table[i].str) == 0) {
+            ESP_LOGI(TAG, "Returning: %d", led_string_to_enum_table[i].state);
+            return led_string_to_enum_table[i].state;
+        }
     }
 
-    ESP_LOGI(TAG, "Returning: %d", led_state);
-
-    return led_state;
+    ESP_LOGW(TAG, "Unknown LED state: %s", str);
+    return LED_OFF;  // Default to LED_OFF if not found
 }
 
 const char *convert_led_enum_to_string(led_state_t state) {
-    const char *result;
-    if (state == LED_OFF) {
-        result = "LED_OFF";
-    } else if (state == LED_RED) {
-        result = "LED_RED";
-    } else if (state == LED_GREEN) {
-        result = "LED_GREEN";
-    } else if (state == LED_BLUE) {
-        result = "LED_BLUE";
-    } else if (state == LED_CYAN) {
-        result = "LED_CYAN";
-    } else if (state == LED_MAGENTA) {
-        result = "LED_MAGENTA";
-    } else if (state == LED_FLASHING_RED) {
-        result = "LED_FLASHING_RED";
-    } else if (state == LED_FLASHING_GREEN) {
-        result = "LED_FLASHING_GREEN";
-    } else if (state == LED_FLASHING_BLUE) {
-        result = "LED_FLASHING_BLUE";
-    } else if (state == LED_FLASHING_WHITE) {
-        result = "LED_FLASHING_WHITE";
-    } else if (state == LED_FLASHING_YELLOW) {
-        result = "LED_FLASHING_YELLOW";
-    } else if (state == LED_FLASHING_CYAN) {
-        result = "LED_FLASHING_CYAN";
-    } else if (state == LED_FLASHING_MAGENTA) {
-        result = "LED_FLASHING_MAGENTA";
-    } else if (state == LED_FLASHING_ORANGE) {
-        result = "LED_FLASHING_ORANGE";
-    } else if (state == LED_PULSATING_RED) {
-        result = "LED_PULSATING_RED";
-    } else if (state == LED_PULSATING_GREEN) {
-        result = "LED_PULSATING_GREEN";
-    } else if (state == LED_PULSATING_BLUE) {
-        result = "LED_PULSATING_BLUE";
-    } else if (state == LED_PULSATING_WHITE) {
-        result = "LED_PULSATING_WHITE";
-    } else {
-        result = "UNKNOWN_STATE";
+    if (state >= 0 && state < sizeof(led_enum_to_string_table) / sizeof(char *)) {
+        return led_enum_to_string_table[state];
     }
-    return result;
+    ESP_LOGE(TAG, "Invalid LED state: %d", state);
+    return "UNKNOWN_STATE";
 }
 
 void set_led(led_state_t new_state) {
