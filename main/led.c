@@ -67,8 +67,7 @@ void pulsate_led_color(uint32_t red, uint32_t green, uint32_t blue) {
 }
 
 // Function to map string to enum
-// Function to map string to enum
-led_state_t lookup_led_state(const char *str) {
+led_state_t convert_led_string_to_enum(const char *str) {
     ESP_LOGI(TAG, "Looking up LED value for: %s", str);
 
     led_state_t led_state = LED_OFF;
@@ -118,9 +117,56 @@ led_state_t lookup_led_state(const char *str) {
     return led_state;
 }
 
+const char *convert_led_enum_to_string(led_state_t state) {
+    const char *result;
+    if (state == LED_OFF) {
+        result = "LED_OFF";
+    } else if (state == LED_RED) {
+        result = "LED_RED";
+    } else if (state == LED_GREEN) {
+        result = "LED_GREEN";
+    } else if (state == LED_BLUE) {
+        result = "LED_BLUE";
+    } else if (state == LED_CYAN) {
+        result = "LED_CYAN";
+    } else if (state == LED_MAGENTA) {
+        result = "LED_MAGENTA";
+    } else if (state == LED_FLASHING_RED) {
+        result = "LED_FLASHING_RED";
+    } else if (state == LED_FLASHING_GREEN) {
+        result = "LED_FLASHING_GREEN";
+    } else if (state == LED_FLASHING_BLUE) {
+        result = "LED_FLASHING_BLUE";
+    } else if (state == LED_FLASHING_WHITE) {
+        result = "LED_FLASHING_WHITE";
+    } else if (state == LED_FLASHING_YELLOW) {
+        result = "LED_FLASHING_YELLOW";
+    } else if (state == LED_FLASHING_CYAN) {
+        result = "LED_FLASHING_CYAN";
+    } else if (state == LED_FLASHING_MAGENTA) {
+        result = "LED_FLASHING_MAGENTA";
+    } else if (state == LED_FLASHING_ORANGE) {
+        result = "LED_FLASHING_ORANGE";
+    } else if (state == LED_PULSATING_RED) {
+        result = "LED_PULSATING_RED";
+    } else if (state == LED_PULSATING_GREEN) {
+        result = "LED_PULSATING_GREEN";
+    } else if (state == LED_PULSATING_BLUE) {
+        result = "LED_PULSATING_BLUE";
+    } else if (state == LED_PULSATING_WHITE) {
+        result = "LED_PULSATING_WHITE";
+    } else {
+        result = "UNKNOWN_STATE";
+    }
+    return result;
+}
+
 void set_led(led_state_t new_state) {
+    ESP_LOGI(TAG, "Queuing request to set LED to: %s", convert_led_enum_to_string(new_state));
     if (xQueueSend(led_queue, &new_state, portMAX_DELAY) != pdPASS) {
         ESP_LOGW(TAG, "Failed to send message to LED queue");
+    } else {
+        ESP_LOGI(TAG, "Successfully sent message to LED queue");
     }
 }
 
@@ -129,16 +175,26 @@ void led_task(void *pvParameter) {
 
     while (1) {
         if (xQueueReceive(led_queue, &new_led_state, portMAX_DELAY)) {
-            current_led_state = new_led_state;
+            if (new_led_state != current_led_state) {
+                ESP_LOGI(TAG, "Rx request to set LED state %s to %s", convert_led_enum_to_string(current_led_state),
+                         convert_led_enum_to_string(new_led_state));
+                current_led_state = new_led_state;
+            } else {
+                continue;
+            }
+        } else {
+            ESP_LOGE(TAG, "Failed to receive message from LED queue");
         }
         switch (current_led_state) {
             case LED_OFF:
+                ESP_LOGE(TAG, "Setting LED to OFF");
                 set_led_color(0, 0, 0);
                 break;
             case LED_RED:
                 set_led_color(8191, 0, 0);
                 break;
             case LED_GREEN:
+                ESP_LOGI(TAG, "Setting LED to GREEN");
                 set_led_color(0, 8191, 0);
                 break;
             case LED_BLUE:
@@ -151,9 +207,11 @@ void led_task(void *pvParameter) {
                 set_led_color(8191, 0, 8191);
                 break;
             case LED_FLASHING_RED:
+                ESP_LOGI(TAG, "Setting LED to FLASHING RED");
                 flash_led_color(8191, 0, 0);  // Flash RED
                 break;
             case LED_FLASHING_GREEN:
+                ESP_LOGI(TAG, "Setting LED to FLASHING GREEN");
                 flash_led_color(0, 8191, 0);  // Flash GREEN
                 break;
             case LED_FLASHING_BLUE:
@@ -188,7 +246,9 @@ void led_task(void *pvParameter) {
                 break;
             default:
                 set_led_color(0, 0, 0);  // Ensure LED is off
+                ESP_LOGE(TAG, "Invalid LED state! Setting LED to OFF");
                 break;
         }
+        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay for 100 milliseconds
     }
 }

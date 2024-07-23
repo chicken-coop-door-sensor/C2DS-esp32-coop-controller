@@ -42,6 +42,6 @@ void init_led_pwm(void);
 void set_led_color(uint32_t red, uint32_t green, uint32_t blue);
 void led_task(void *pvParameter);
 void set_led(led_state_t new_state);
-led_state_t lookup_led_state(const char *str);
+led_state_t convert_led_string_to_enum(const char *str);
 
 #endif  // LED_H

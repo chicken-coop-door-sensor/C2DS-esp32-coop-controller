@@ -107,7 +107,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
                     cJSON *state = cJSON_GetObjectItem(json, "LED");
                     if (cJSON_IsString(state)) {
                         ESP_LOGI(TAG, "Parsed state: %s", state->valuestring);
-                        set_led(lookup_led_state(state->valuestring));
+                        set_led(convert_led_string_to_enum(state->valuestring));
                     } else {
                         ESP_LOGE(TAG, "JSON state item is not a string");
                     }
