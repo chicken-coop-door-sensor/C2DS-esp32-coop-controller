@@ -1,9 +1,30 @@
 dependencies:
+  gecl-logger-manager:
+    component_hash: 3e58ce54a2eb851b36656c90b213bcd8f4b22a7d34f6d66b1e4b5d8cdca9c5dd
+    source:
+      git: https://github.com/gamename-esp32-component-library/GECL-logger-manager.git
+      path: .
+      type: git
+    version: 3376ea875eb59b8e8bd213d03e9a56422018af79
+  gecl-ota-manager:
+    component_hash: 0abee18d915b135fe55a8b0b6e50de295981ece631a4c7c93f51f663d3039012
+    source:
+      git: https://github.com/gamename-esp32-component-library/GECL-ota-manager.git
+      path: .
+      type: git
+    version: aa90f071bbfbb8b9feeeda249553368d3c92fb3c
+  gecl-time-sync-manager:
+    component_hash: 8a710e0f8c24b5b6787b198d430d5082e80632e9498b51c785e0dd5a70b79e79
+    source:
+      git: https://github.com/gamename-esp32-component-library/GECL-time-sync-manager.git
+      path: .
+      type: git
+    version: 81d6bb10cb2c545b7cf0a8dc9fc0564d5e8cc4c4
   idf:
     component_hash: null
     source:
       type: idf
     version: 5.2.0
-manifest_hash: b0a0372255750c8685f70d965ebea7cffe558ecb7924391d508839044b9c5ad9
+manifest_hash: 62247978eb876243f91aee6d5239d7cebc006f5423bd57b6362629922c60ec9e
 target: esp32
 version: 1.0.0

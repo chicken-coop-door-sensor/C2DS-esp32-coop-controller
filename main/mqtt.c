@@ -5,10 +5,10 @@
 #include "esp_random.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "gecl-ota-manager.h"
 #include "led.h"
 #include "mbedtls/debug.h"
 #include "mqtt_client.h"
-#include "ota.h"
 #include "sdkconfig.h"
 #include "sensors.h"
 
