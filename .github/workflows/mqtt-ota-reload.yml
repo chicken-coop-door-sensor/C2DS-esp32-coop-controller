@@ -41,7 +41,7 @@ jobs:
       - name: Build Controller
         run: |
           docker run --rm -v $PWD:/workspace -w /workspace ${{ secrets.DOCKER_USERNAME }}/esp-idf:latest \
-            /bin/bash -c ". /opt/esp-idf/export.sh && idf.py fullclean build"
+            /bin/bash -c ". /opt/esp-idf/export.sh && idf.py fullclean && idf.py reconfigure && idf.py build"
         working-directory: ${{ github.workspace }}
 
       - name: Get the current commit hash
