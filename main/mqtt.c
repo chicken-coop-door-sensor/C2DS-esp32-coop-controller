@@ -6,7 +6,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "gecl-ota-manager.h"
-#include "led.h"
+#include "gecl-rgb-led-manager.h"
 #include "mbedtls/debug.h"
 #include "mqtt_client.h"
 #include "sdkconfig.h"

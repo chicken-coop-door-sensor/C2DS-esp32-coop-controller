@@ -14,10 +14,41 @@ set(SOURCES
 # Specify the directory containing the header files
 set(INCLUDES ".")
 
+# Get all the component include directories
+file(GLOB_RECURSE COMPONENT_SOURCES "components/*/*.c")
+
+file(GLOB_RECURSE COMPONENT_INCLUDES "components/*/include")
+
+# Print out the include directories for verification
+#message(STATUS "Include directories: ${INCLUDES}")
+foreach(INCLUDE_DIR ${COMPONENT_INCLUDES})
+    message(STATUS "=====================>>>>>>>>>>: ${INCLUDE_DIR}")
+endforeach()
+
 # Add the source files to the build
 idf_component_register(
-    SRCS ${SOURCES}
-    INCLUDE_DIRS ${INCLUDES}
-    REQUIRES mbedtls app_update esp_https_ota 
-    PRIV_REQUIRES mbedtls mqtt nvs_flash esp_wifi driver json
+    SRCS 
+        ${SOURCES}
+        ${COMPONENT_SOURCES}
+    INCLUDE_DIRS 
+        ${INCLUDES} 
+        ${COMPONENT_INCLUDES} 
+    REQUIRES 
+        mbedtls 
+        app_update 
+        esp_https_ota 
+        mqtt 
+    PRIV_REQUIRES 
+        mbedtls 
+        nvs_flash 
+        esp_wifi 
+        driver 
+        json
+        gecl-ota-manager
+        gecl-wifi-manager
+        gecl-rgb-led-manager
+        gecl-time-sync-manager
+        gecl-logger-manager
+        gecl-heartbeat-manager
 )
+

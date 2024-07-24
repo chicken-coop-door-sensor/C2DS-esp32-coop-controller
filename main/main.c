@@ -2,17 +2,17 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "gecl-heartbeat-manager.h"
 #include "gecl-logger-manager.h"
 #include "gecl-ota-manager.h"
+#include "gecl-rgb-led-manager.h"
 #include "gecl-time-sync-manager.h"
-#include "heartbeat.h"
-#include "led.h"
+#include "gecl-wifi-manager.h"
 #include "mbedtls/debug.h"
 #include "mqtt.h"
 #include "nvs_flash.h"
 #include "sdkconfig.h"
 #include "sensors.h"
-#include "wifi.h"
 
 static const char *TAG = "MAIN";
 QueueHandle_t log_queue = NULL;
