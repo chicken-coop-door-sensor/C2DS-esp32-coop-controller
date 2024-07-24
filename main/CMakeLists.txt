@@ -24,6 +24,15 @@ set(INCLUDES ".")
 idf_component_register(
     SRCS ${SOURCES}
     INCLUDE_DIRS ${INCLUDES}
-    REQUIRES mbedtls app_update esp_https_ota 
-    PRIV_REQUIRES mbedtls mqtt nvs_flash esp_wifi driver json
+    REQUIRES 
+        mbedtls 
+        app_update 
+        esp_https_ota 
+        mqtt 
+    PRIV_REQUIRES 
+        mbedtls 
+        nvs_flash 
+        esp_wifi 
+        driver 
+        json
 )

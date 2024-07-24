@@ -2,7 +2,7 @@
 #define MQTT_H
 #include <stdbool.h>
 
-#include "mqtt_client.h"  // Add this line to ensure esp_mqtt_client_handle_t is recognized
+#include "mqtt_client.h"
 
 extern esp_mqtt_client_handle_t client;
 extern bool is_mqtt_connected;
