@@ -25,9 +25,16 @@ static void tls_debug_callback(void *ctx, int level, const char *file, int line,
 }
 
 void app_main(void) {
-    esp_log_level_set("MQTT_CLIENT", ESP_LOG_DEBUG);
-    esp_log_level_set("esp-tls", ESP_LOG_DEBUG);
-    esp_log_level_set("transport", ESP_LOG_DEBUG);
+    printf(
+        "Starting GECL IoT Device\n"
+        "Version: %s\n"
+        "Build Date: %s\n"
+        "Build Time: %s\n",
+        CONFIG_APP_VERSION, __DATE__, __TIME__);
+
+    // esp_log_level_set("MQTT_CLIENT", ESP_LOG_DEBUG);
+    // esp_log_level_set("esp-tls", ESP_LOG_DEBUG);
+    // esp_log_level_set("transport", ESP_LOG_DEBUG);
 
     ESP_LOGI(TAG, "Initializing LED PWM");
     init_led_pwm();
