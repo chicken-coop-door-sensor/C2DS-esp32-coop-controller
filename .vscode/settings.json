@@ -3,7 +3,8 @@
     "clang-format.style": "{ BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 120 }",
     "idf.adapterTargetName": "esp32",
     "files.associations": {
-        "mqtt.h": "c"
+        "mqtt.h": "c",
+        "wifi.h": "c"
     },
     "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
     "terminal.integrated.profiles.osx": {
@@ -11,7 +12,7 @@
             "path": "/bin/zsh",
             "args": [
                 "-c",
-                "source ~/.zshrc && setidf && export COMPONENT_KCONFIGS_DIR=$(pwd)components && export EXTRA_COMPONENT_DIRS=$(pwd)components && clear && exec zsh"
+                "source ~/.zshrc && setidf && export COMPONENT_KCONFIGS_DIR=$(pwd)/components && export EXTRA_COMPONENT_DIRS=$(pwd)/components && clear && exec zsh"
             ]
         }
     },

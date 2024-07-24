@@ -4,11 +4,8 @@ cmake_minimum_required(VERSION 3.5)
 # Define the source files
 set(SOURCES 
     "main.c" 
-    "wifi.c" 
     "mqtt.c" 
-    "led.c" 
     "sensors.c"
-    "heartbeat.c"
     "certs/AmazonRootCA1_pem.c"
     "certs/chicken_coop_door_controller_certificate_pem_crt.c"
     "certs/chicken_coop_door_controller_private_pem_key.c"
