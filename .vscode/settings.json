@@ -21,4 +21,6 @@
         }
     },
     "terminal.integrated.defaultProfile.osx": "MyCustomProfile",
+    "workbench.startupEditor": "none",
+    "workbench.welcomePage.enabled": false,
 }
