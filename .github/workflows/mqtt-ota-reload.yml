@@ -56,14 +56,20 @@ jobs:
           git config --global user.email "github-actions@example.com"
           git config --global user.name "GitHub Actions"
 
-      # Step 9: Tag the commit
-      - name: Tag the commit
+      # Step 9: Tag the commit if tag doesn't exist
+      - name: Tag the commit if tag doesn't exist
         id: tag
         run: |
           VERSION_TAG="v1.0.0-${{ steps.vars.outputs.sha_short }}"
-          echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
-          git tag -a $VERSION_TAG -m "Tagging commit ${{ steps.vars.outputs.sha_short }}"
-          git push origin $VERSION_TAG
+          if ! git rev-parse $VERSION_TAG >/dev/null 2>&1; then
+            echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
+            git tag -a $VERSION_TAG -m "Tagging commit ${{ steps.vars.outputs.sha_short }}"
+            git push origin $VERSION_TAG
+          else
+            echo "Tag $VERSION_TAG already exists"
+            VERSION_TAG=$VERSION_TAG
+            echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
+          fi
 
       # Step 10: Build Controller
       - name: Build Controller
