@@ -14,6 +14,10 @@
 #include "sdkconfig.h"
 #include "sensors.h"
 
+#ifndef VERSION_TAG
+#define VERSION_TAG "undefined"
+#endif
+
 #define VERSION_TAG CONFIG_VERSION_TAG
 
 static const char *TAG = "MAIN";
