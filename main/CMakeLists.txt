@@ -4,14 +4,8 @@ cmake_minimum_required(VERSION 3.5)
 # Define the source files
 set(SOURCES 
     "main.c" 
-    "wifi.c" 
     "mqtt.c" 
-    "led.c" 
     "sensors.c"
-    "ota.c"
-    "time_sync.c"
-    "heartbeat.c"
-    "logger.c"
     "certs/AmazonRootCA1_pem.c"
     "certs/chicken_coop_door_controller_certificate_pem_crt.c"
     "certs/chicken_coop_door_controller_private_pem_key.c"
@@ -20,10 +14,25 @@ set(SOURCES
 # Specify the directory containing the header files
 set(INCLUDES ".")
 
+# Get all the component include directories
+file(GLOB_RECURSE COMPONENT_SOURCES "components/*/*.c")
+
+file(GLOB_RECURSE COMPONENT_INCLUDES "components/*/include")
+
+# Print out the include directories for verification
+#message(STATUS "Include directories: ${INCLUDES}")
+foreach(INCLUDE_DIR ${COMPONENT_INCLUDES})
+    message(STATUS "=====================>>>>>>>>>>: ${INCLUDE_DIR}")
+endforeach()
+
 # Add the source files to the build
 idf_component_register(
-    SRCS ${SOURCES}
-    INCLUDE_DIRS ${INCLUDES}
+    SRCS 
+        ${SOURCES}
+        ${COMPONENT_SOURCES}
+    INCLUDE_DIRS 
+        ${INCLUDES} 
+        ${COMPONENT_INCLUDES} 
     REQUIRES 
         mbedtls 
         app_update 
@@ -35,4 +44,11 @@ idf_component_register(
         esp_wifi 
         driver 
         json
+        gecl-ota-manager
+        gecl-wifi-manager
+        gecl-rgb-led-manager
+        gecl-time-sync-manager
+        gecl-logger-manager
+        gecl-heartbeat-manager
 )
+

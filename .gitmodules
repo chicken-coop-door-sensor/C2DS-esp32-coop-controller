@@ -1,3 +1,18 @@
+[submodule "components/gecl-ota-manager"]
+	path = components/gecl-ota-manager
+	url = https://github.com/gamename-esp32-component-library/GECL-ota-manager
 [submodule "components/gecl-time-sync-manager"]
 	path = components/gecl-time-sync-manager
 	url = https://github.com/gamename-esp32-component-library/GECL-time-sync-manager
+[submodule "components/gecl-logger-manager"]
+	path = components/gecl-logger-manager
+	url = https://github.com/gamename-esp32-component-library/GECL-logger-manager
+[submodule "components/gecl-rgb-led-manager"]
+	path = components/gecl-rgb-led-manager
+	url = https://github.com/gamename-esp32-component-library/GECL-rgb-led-manager
+[submodule "components/gecl-wifi-manager"]
+	path = components/gecl-wifi-manager
+	url = https://github.com/gamename-esp32-component-library/GECL-wifi-manager
+[submodule "components/gecl-heartbeat-manager"]
+	path = components/gecl-heartbeat-manager
+	url = https://github.com/gamename-esp32-component-library/GECL-heartbeat-manager

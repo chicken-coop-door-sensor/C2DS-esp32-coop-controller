@@ -1,18 +1,18 @@
 #include "sensors.h"
-#include "led.h"
+
 #include "driver/ledc.h"
+#include "esp_log.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "gecl-rgb-led-manager.h"
+#include "mqtt.h"
 #include "mqtt_client.h"
-#include "esp_log.h"
-#include "mqtt.h" 
-#include "esp_timer.h"
 #include "sdkconfig.h"
-
 
 static const char *TAG = "SENSORS";
 
-#define TRANSMIT_STATUS_INTERVAL_IN_MINUTES ( CONFIG_STATUS_TRANSMIT_INTERVAL * 60 * 1000)
+#define TRANSMIT_STATUS_INTERVAL_IN_MINUTES (CONFIG_STATUS_TRANSMIT_INTERVAL * 60 * 1000)
 
 #define MAIN_LOOP_SLEEP_MS 2000
 #define STATUS_UPDATE_INTERVAL_MS 60000
@@ -69,7 +69,7 @@ static void publish_door_status(esp_mqtt_client_handle_t client, door_status_t s
 }
 
 void read_sensors_task(void *pvParameters) {
-    esp_mqtt_client_handle_t client = (esp_mqtt_client_handle_t) pvParameters;
+    esp_mqtt_client_handle_t client = (esp_mqtt_client_handle_t)pvParameters;
 
     while (true) {
         int left_sensor_value = gpio_get_level(LEFT_SENSOR_GPIO);
@@ -83,7 +83,7 @@ void read_sensors_task(void *pvParameters) {
         }
 
         uint64_t current_time = esp_timer_get_time() / 1000;
-        if (current_door_status != last_door_status || 
+        if (current_door_status != last_door_status ||
             (current_time - last_publish_time) >= TRANSMIT_STATUS_INTERVAL_IN_MINUTES) {
             publish_door_status(client, current_door_status);
             last_door_status = current_door_status;

@@ -2,17 +2,17 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "heartbeat.h"
-#include "led.h"
-#include "logger.h"
+#include "gecl-heartbeat-manager.h"
+#include "gecl-logger-manager.h"
+#include "gecl-ota-manager.h"
+#include "gecl-rgb-led-manager.h"
+#include "gecl-time-sync-manager.h"
+#include "gecl-wifi-manager.h"
 #include "mbedtls/debug.h"
 #include "mqtt.h"
 #include "nvs_flash.h"
-#include "ota.h"
 #include "sdkconfig.h"
 #include "sensors.h"
-#include "time_sync.h"
-#include "wifi.h"
 
 static const char *TAG = "MAIN";
 QueueHandle_t log_queue = NULL;
@@ -25,15 +25,12 @@ static void tls_debug_callback(void *ctx, int level, const char *file, int line,
 }
 
 void app_main(void) {
-    esp_log_level_set("MQTT_CLIENT", ESP_LOG_DEBUG);
-    esp_log_level_set("esp-tls", ESP_LOG_DEBUG);
-    esp_log_level_set("transport", ESP_LOG_DEBUG);
-
     ESP_LOGI(TAG, "Initializing LED PWM");
     init_led_pwm();
 
     led_queue = xQueueCreate(10, sizeof(led_state_t));
     if (led_queue == NULL) {
+        ESP_LOGE(TAG, "Could not initialize LED PWM");
         esp_restart();
     }
 
@@ -42,13 +39,14 @@ void app_main(void) {
 
     ESP_LOGI(TAG, "Setting LED state to flashing white");
 
+    set_led(LED_FLASHING_WHITE);
+
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
-
     init_sensors_gpio();
 
     ESP_LOGI(TAG, "Initialize WiFi");

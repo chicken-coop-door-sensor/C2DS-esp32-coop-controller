@@ -1,4 +1,5 @@
 {
     "status": "alive",
-    "endpoint": "chicken-coop-door-sensor"
+    "endpoint": "chicken-coop-door-sensor",
+    "messageId": "1234567890"
 }
