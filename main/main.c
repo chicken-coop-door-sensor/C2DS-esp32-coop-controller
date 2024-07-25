@@ -25,18 +25,12 @@ static void tls_debug_callback(void *ctx, int level, const char *file, int line,
 }
 
 void app_main(void) {
-    printf("Enter app_main\n");
-
-    // esp_log_level_set("MQTT_CLIENT", ESP_LOG_DEBUG);
-    // esp_log_level_set("esp-tls", ESP_LOG_DEBUG);
-    // esp_log_level_set("transport", ESP_LOG_DEBUG);
-    esp_log_level_set("wifi", ESP_LOG_DEBUG);
-
     ESP_LOGI(TAG, "Initializing LED PWM");
     init_led_pwm();
 
     led_queue = xQueueCreate(10, sizeof(led_state_t));
     if (led_queue == NULL) {
+        ESP_LOGE(TAG, "Could not initialize LED PWM");
         esp_restart();
     }
 
