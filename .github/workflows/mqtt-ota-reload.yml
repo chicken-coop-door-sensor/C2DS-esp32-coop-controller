@@ -45,27 +45,31 @@ jobs:
         run: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/esp-idf:latest
 
-      # Step 7: Build Controller
+      # Step 7: Get the current commit hash
+      - name: Get the current commit hash
+        id: vars
+        run: echo ::set-output name=sha_short::$(git rev-parse --short HEAD)
+
+      # Step 8: Tag the commit
+      - name: Tag the commit
+        id: tag
+        run: |
+          VERSION_TAG="v1.0.0-${{ steps.vars.outputs.sha_short }}"
+          echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
+          git tag -a $VERSION_TAG -m "Tagging commit ${{ steps.vars.outputs.sha_short }}"
+          git push origin $VERSION_TAG
+
+      # Step 9: Build Controller
       - name: Build Controller
         run: |
           docker run --rm \
             -v $PWD:/workspace \
             -w /workspace \
             -e COMPONENT_KCONFIGS_DIR=/workspace/components \
+            -e VERSION_TAG=${{ env.VERSION_TAG }} \ 
             ${{ secrets.DOCKER_USERNAME }}/esp-idf:latest \
             /bin/bash -c ". /opt/esp-idf/export.sh && idf.py build"
         working-directory: ${{ github.workspace }}
-
-      # Step 8: Get the current commit hash
-      - name: Get the current commit hash
-        id: vars
-        run: echo ::set-output name=sha_short::$(git rev-parse --short HEAD)
-
-      # Step 9: Tag the commit
-      - name: Tag the commit
-        run: |
-          VERSION_TAG="v1.0.0-${{ steps.vars.outputs.sha_short }}"
-          echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
 
       # Step 10: Upload Controller to S3
       - name: Upload Controller to S3

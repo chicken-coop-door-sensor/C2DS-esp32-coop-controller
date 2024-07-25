@@ -14,6 +14,8 @@
 #include "sdkconfig.h"
 #include "sensors.h"
 
+#define VERSION_TAG CONFIG_VERSION_TAG
+
 static const char *TAG = "MAIN";
 QueueHandle_t log_queue = NULL;
 QueueHandle_t led_queue = NULL;
@@ -25,6 +27,8 @@ static void tls_debug_callback(void *ctx, int level, const char *file, int line,
 }
 
 void app_main(void) {
+    ESP_LOGI("TAG", "\n\nFirmware Version: %s\n\n", VERSION_TAG);
+
     ESP_LOGI(TAG, "Initializing LED PWM");
     init_led_pwm();
 
