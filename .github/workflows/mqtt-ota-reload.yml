@@ -48,7 +48,7 @@ jobs:
       # Step 7: Get the current commit hash
       - name: Get the current commit hash
         id: vars
-        run: echo ::set-output name=sha_short::$(git rev-parse --short HEAD)
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       # Step 8: Configure Git identity
       - name: Configure Git identity
@@ -60,12 +60,12 @@ jobs:
       - name: Tag the commit if tag doesn't exist
         id: tag
         run: |
-          VERSION_TAG="v1.0.0-${{ steps.vars.outputs.sha_short }}"
-          if git rev-parse "$VERSION_TAG" >/dev/null 2>&1; then
+          VERSION_TAG="v1.0.0-${{ env.sha_short }}"
+          if git ls-remote --tags origin | grep -qw "refs/tags/$VERSION_TAG"; then
             echo "Tag $VERSION_TAG already exists"
           else
             echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
-            git tag -a $VERSION_TAG -m "Tagging commit ${{ steps.vars.outputs.sha_short }}"
+            git tag -a $VERSION_TAG -m "Tagging commit ${{ env.sha_short }}"
             git push origin $VERSION_TAG
           fi
 
