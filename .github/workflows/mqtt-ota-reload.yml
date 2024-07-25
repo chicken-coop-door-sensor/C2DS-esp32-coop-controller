@@ -61,14 +61,12 @@ jobs:
         id: tag
         run: |
           VERSION_TAG="v1.0.0-${{ steps.vars.outputs.sha_short }}"
-          if ! git rev-parse $VERSION_TAG >/dev/null 2>&1; then
+          if git rev-parse "$VERSION_TAG" >/dev/null 2>&1; then
+            echo "Tag $VERSION_TAG already exists"
+          else
             echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
             git tag -a $VERSION_TAG -m "Tagging commit ${{ steps.vars.outputs.sha_short }}"
             git push origin $VERSION_TAG
-          else
-            echo "Tag $VERSION_TAG already exists"
-            VERSION_TAG=$VERSION_TAG
-            echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
           fi
 
       # Step 10: Build Controller
