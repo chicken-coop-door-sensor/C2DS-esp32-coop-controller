@@ -48,7 +48,11 @@ jobs:
       # Step 7: Build Controller
       - name: Build Controller
         run: |
-          docker run --rm -v $PWD:/workspace -w /workspace -e COMPONENT_KCONFIGS_DIR=${{ github.workspace }}/components ${{ secrets.DOCKER_USERNAME }}/esp-idf:latest \
+          docker run --rm \
+            -v $PWD:/workspace \
+            -w /workspace \
+            -e COMPONENT_KCONFIGS_DIR=/home/runner/work/C2DS-esp32-coop-controller/components \
+            ${{ secrets.DOCKER_USERNAME }}/esp-idf:latest \
             /bin/bash -c ". /opt/esp-idf/export.sh && idf.py build"
         working-directory: ${{ github.workspace }}
 
