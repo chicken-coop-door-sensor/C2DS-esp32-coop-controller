@@ -1,22 +1,4 @@
 dependencies:
-  gecl-logger-manager:
-    component_hash: null
-    source:
-      path: /Users/tennis/src/C2DS-esp32-coop-controller/components/gecl-logger-manager
-      type: local
-    version: 1.0.0
-  gecl-ota-manager:
-    component_hash: null
-    source:
-      path: /Users/tennis/src/C2DS-esp32-coop-controller/components/gecl-ota-manager
-      type: local
-    version: 1.0.0
-  gecl-time-sync-manager:
-    component_hash: null
-    source:
-      path: /Users/tennis/src/C2DS-esp32-coop-controller/components/gecl-time-sync-manager
-      type: local
-    version: 0.0.1
   idf:
     component_hash: null
     source:

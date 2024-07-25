@@ -51,7 +51,7 @@ jobs:
           docker run --rm \
             -v $PWD:/workspace \
             -w /workspace \
-            -e COMPONENT_KCONFIGS_DIR=/home/runner/work/C2DS-esp32-coop-controller/components \
+            -e COMPONENT_KCONFIGS_DIR=/workspace/components \
             ${{ secrets.DOCKER_USERNAME }}/esp-idf:latest \
             /bin/bash -c ". /opt/esp-idf/export.sh && idf.py build"
         working-directory: ${{ github.workspace }}
