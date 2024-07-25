@@ -72,7 +72,7 @@ jobs:
             -v $PWD:/workspace \
             -w /workspace \
             -e COMPONENT_KCONFIGS_DIR=/workspace/components \
-            -e VERSION_TAG=${{ env.VERSION_TAG }} \  # Pass the tag to the build
+            -e VERSION_TAG=${{ env.VERSION_TAG }} \
             ${{ secrets.DOCKER_USERNAME }}/esp-idf:latest \
             /bin/bash -c ". /opt/esp-idf/export.sh && idf.py build"
         working-directory: ${{ github.workspace }}
