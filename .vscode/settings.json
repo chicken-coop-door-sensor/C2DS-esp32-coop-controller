@@ -4,7 +4,8 @@
     "idf.adapterTargetName": "esp32",
     "files.associations": {
         "mqtt.h": "c",
-        "wifi.h": "c"
+        "wifi.h": "c",
+        "gecl-time-sync-manager.h": "c"
     },
     "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
     "terminal.integrated.profiles.osx": {
@@ -19,4 +20,5 @@
     "terminal.integrated.defaultProfile.osx": "MyCustomProfile",
     "workbench.startupEditor": "none",
     "workbench.welcomePage.enabled": false,
+    "git.defaultCloneDirectory": "/Users/tennis/src"
 }
