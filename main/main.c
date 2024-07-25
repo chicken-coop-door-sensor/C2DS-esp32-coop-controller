@@ -18,8 +18,6 @@
 #define VERSION_TAG "undefined"
 #endif
 
-#define VERSION_TAG CONFIG_VERSION_TAG
-
 static const char *TAG = "MAIN";
 QueueHandle_t log_queue = NULL;
 QueueHandle_t led_queue = NULL;
