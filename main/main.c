@@ -95,7 +95,6 @@ void custom_handle_mqtt_event_error(esp_mqtt_event_handle_t event) {
     } else {
         ESP_LOGI(TAG, "Unknown error type: 0x%x", event->error_handle->error_type);
     }
-    set_led(LED_FLASHING_GREEN);
     esp_restart();
 }
 
