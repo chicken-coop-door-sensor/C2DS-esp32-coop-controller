@@ -79,6 +79,7 @@ void custom_handle_mqtt_event_data(esp_mqtt_event_handle_t event) {
             // Clean up task handle if it has been deleted
             ota_task_handle = NULL;
         }
+        set_led(LED_FLASHING_GREEN);
         xTaskCreate(&ota_task, "ota_task", 8192, event, 5, &ota_task_handle);
     }
 }
