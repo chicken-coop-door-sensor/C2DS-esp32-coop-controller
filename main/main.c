@@ -20,7 +20,7 @@
 
 static const char *TAG = "MAIN";
 QueueHandle_t log_queue = NULL;
-QueueHandle_t led_queue = NULL;
+QueueHandle_t led_state_queue = NULL;
 
 static void tls_debug_callback(void *ctx, int level, const char *file, int line, const char *str) {
     // Uncomment to enable verbose debugging
@@ -34,8 +34,8 @@ void app_main(void) {
     ESP_LOGI(TAG, "Initializing LED PWM");
     init_led_pwm();
 
-    led_queue = xQueueCreate(10, sizeof(led_state_t));
-    if (led_queue == NULL) {
+    led_state_queue = xQueueCreate(10, sizeof(led_state_t));
+    if (led_state_queue == NULL) {
         ESP_LOGE(TAG, "Could not initialize LED PWM");
         esp_restart();
     }
