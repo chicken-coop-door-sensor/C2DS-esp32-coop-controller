@@ -5,8 +5,8 @@
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "gecl-mqtt-manager.h"
 #include "gecl-rgb-led-manager.h"
-#include "mqtt.h"
 #include "mqtt_client.h"
 #include "sdkconfig.h"
 

@@ -11,7 +11,6 @@ endif()
 # Define the source files
 set(SOURCES 
     "main.c" 
-    "mqtt.c" 
     "sensors.c"
     "certs/AmazonRootCA1_pem.c"
     "certs/chicken_coop_door_controller_certificate_pem_crt.c"
@@ -57,6 +56,7 @@ idf_component_register(
         gecl-time-sync-manager
         gecl-logger-manager
         gecl-heartbeat-manager
+        gecl-mqtt-manager
 )
 
 # Set the VERSION_TAG as a compile definition
