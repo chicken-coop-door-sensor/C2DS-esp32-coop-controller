@@ -6,7 +6,8 @@
         "mqtt.h": "c",
         "wifi.h": "c",
         "gecl-time-sync-manager.h": "c",
-        "cjson.h": "c"
+        "cjson.h": "c",
+        "gecl-rgb-led-manager.h": "c"
     },
     "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
     "terminal.integrated.profiles.osx": {

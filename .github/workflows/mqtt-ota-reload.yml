@@ -103,5 +103,5 @@ jobs:
             --endpoint-url $AWS_IOT_ENDPOINT_URL \
             --topic "coop/update/controller" \
             --cli-binary-format raw-in-base64-out \
-            --payload "{\"controller\": \"${{ secrets.AWS_S3_URL_PREFIX }}/coop-controller/$VERSION_TAG/firmware.bin\"}"
+            --payload "{\"${{ secrets.CONTROLLER_WIFI_MAC_ADDRESS }}\": \"${{ secrets.AWS_S3_URL_PREFIX }}/coop-controller/$VERSION_TAG/firmware.bin\"}"
         working-directory: ${{ github.workspace }}

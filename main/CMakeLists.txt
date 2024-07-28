@@ -57,6 +57,7 @@ idf_component_register(
         gecl-logger-manager
         gecl-heartbeat-manager
         gecl-mqtt-manager
+        gecl-misc-util-manager
 )
 
 # Set the VERSION_TAG as a compile definition

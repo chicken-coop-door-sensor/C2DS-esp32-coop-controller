@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "gecl-heartbeat-manager.h"
 #include "gecl-logger-manager.h"
+#include "gecl-misc-util-manager.h"
 #include "gecl-mqtt-manager.h"
 #include "gecl-ota-manager.h"
 #include "gecl-rgb-led-manager.h"
@@ -106,6 +107,10 @@ static void tls_debug_callback(void *ctx, int level, const char *file, int line,
 
 void app_main(void) {
     ESP_LOGI(TAG, "\n\nFirmware Version: %s\n\n", VERSION_TAG);
+
+    char mac_address[18];
+    get_burned_in_mac_address(mac_address);
+    printf("Burned-In MAC Address: %s\n", mac_address);
 
     ESP_LOGI(TAG, "Initializing LED PWM");
     init_led_pwm();
