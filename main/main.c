@@ -20,6 +20,8 @@
 #endif
 
 static const char *TAG = "MAIN";
+const char *device_name = CONFIG_WIFI_HOSTNAME;
+
 QueueHandle_t log_queue = NULL;
 QueueHandle_t led_state_queue = NULL;
 
@@ -108,75 +110,27 @@ static void tls_debug_callback(void *ctx, int level, const char *file, int line,
 void app_main(void) {
     ESP_LOGI(TAG, "\n\nFirmware Version: %s\n\n", VERSION_TAG);
 
-    char mac_address[18];
-    get_burned_in_mac_address(mac_address);
-    printf("Burned-In MAC Address: %s\n", mac_address);
+    show_mac_address();
 
-    ESP_LOGI(TAG, "Initializing LED PWM");
-    init_led_pwm();
+    setup_nvs_flash();
 
-    led_state_queue = xQueueCreate(10, sizeof(led_state_t));
-    if (led_state_queue == NULL) {
-        ESP_LOGE(TAG, "Could not initialize LED PWM");
-        esp_restart();
-    }
-
-    ESP_LOGI(TAG, "Creating LED task");
-    xTaskCreate(&led_task, "led_task", 4096, NULL, 5, NULL);
-
-    ESP_LOGI(TAG, "Setting LED state to flashing white");
-
-    set_led(LED_FLASHING_WHITE);
-
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
     init_sensors_gpio();
 
-    ESP_LOGI(TAG, "Initialize WiFi");
     wifi_init_sta();
 
     synchronize_time();
 
-    log_queue = xQueueCreate(LOG_QUEUE_LENGTH, sizeof(log_message_t));
+    log_queue = start_logging();
 
-    if (log_queue == NULL) {
-        ESP_LOGE(TAG, "Failed to create logger queue");
-        esp_restart();
-    }
-
-    xTaskCreate(&logger_task, "logger_task", 4096, NULL, 5, NULL);
-
-    // Define the configuration
     mqtt_config_t config = {.certificate = chicken_coop_door_controller_certificate_pem_crt,
                             .private_key = chicken_coop_door_controller_private_pem_key,
                             .broker_uri = CONFIG_AWS_IOT_ENDPOINT};
 
-    // Set the custom event handlers
-    mqtt_set_event_connected_handler(custom_handle_mqtt_event_connected);
-    mqtt_set_event_disconnected_handler(custom_handle_mqtt_event_disconnected);
-    mqtt_set_event_data_handler(custom_handle_mqtt_event_data);
-    mqtt_set_event_error_handler(custom_handle_mqtt_event_error);
+    esp_mqtt_client_handle_t client = start_mqtt(&config);
 
-    // Start the MQTT client
-    esp_mqtt_client_handle_t client = mqtt_app_start(&config);
+    check_boot_origin(client);
 
-    if (was_booted_after_ota_update()) {
-        char buffer[128];
-        ESP_LOGW(TAG, "Device booted after an OTA update.");
-        cJSON *root = cJSON_CreateObject();
-        sprintf(buffer, "Successful reboot after OTA update");
-        cJSON_AddStringToObject(root, CONFIG_WIFI_HOSTNAME, buffer);
-        const char *json_string = cJSON_Print(root);
-        esp_mqtt_client_publish(client, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC, json_string, 0, 1, 0);
-        free(root);
-        free(json_string);
-    } else {
-        ESP_LOGW(TAG, "Device did not boot after an OTA update.");
-    }
+    led_state_queue = start_led_task(client);
 
     xTaskCreate(&heartbeat_task, "heartbeat_task", 4096, (void *)client, 4, NULL);
 
