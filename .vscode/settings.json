@@ -8,7 +8,9 @@
         "gecl-time-sync-manager.h": "c",
         "cjson.h": "c",
         "gecl-rgb-led-manager.h": "c",
-        "debug.h": "c"
+        "debug.h": "c",
+        "nvs_flash.h": "c",
+        "gecl-mqtt-manager.h": "c"
     },
     "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
     "terminal.integrated.profiles.osx": {
