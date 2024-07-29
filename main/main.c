@@ -1,5 +1,8 @@
 #include "cJSON.h"
+#include "esp_https_ota.h"
 #include "esp_log.h"
+#include "esp_system.h"
+#include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "gecl-heartbeat-manager.h"
@@ -197,9 +200,11 @@ void app_main(void) {
 
     led_state_queue = start_led_task(client);
 
+    set_led(LED_FLASHING_WHITE);
+
     init_sensors_gpio();
 
-    xTaskCreate(&heartbeat_task, "heartbeat_task", 4096, (void *)client, 4, NULL);
+    xTaskCreate(&heartbeat_task, "heartbeat_task", 4096, (void *)client, 5, NULL);
 
     // Infinite loop to prevent exiting app_main
     while (true) {
