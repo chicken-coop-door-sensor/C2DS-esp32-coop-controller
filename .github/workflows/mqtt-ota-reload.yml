@@ -74,6 +74,10 @@ jobs:
             /bin/bash -c ". /opt/esp-idf/export.sh && git config --global --add safe.directory /workspace && idf.py build"
         working-directory: ${{ github.workspace }}
 
+      - name: Get our versioning information
+        run: |
+          cat build/include/gecl-versioning-manager.h
+
       - name: Upload Controller to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
