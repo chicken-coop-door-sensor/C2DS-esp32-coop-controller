@@ -183,6 +183,8 @@ void check_boot_origin(esp_mqtt_client_handle_t my_client) {
 }
 
 void app_main(void) {
+    print_version_info();
+
     ESP_LOGI(TAG, "\n\nFirmware Version: %s\n\n", VERSION_TAG);
 
     show_mac_address();
