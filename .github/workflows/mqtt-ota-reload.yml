@@ -18,7 +18,7 @@ jobs:
           submodules: recursive
 
       - name: Set up Git safe directory
-        run: git config --global --add safe.directory ${{ github.workspace }}
+        run: git config --global --add safe.directory /workspace
 
       # Step 2: Install git-crypt
       - name: Install git-crypt
