@@ -209,6 +209,6 @@ void app_main(void) {
 
     // Infinite loop to prevent exiting app_main
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(1000));  // Delay to allow other tasks to run
+        vTaskDelay(pdMS_TO_TICKS(100));  // Delay to allow other tasks to run
     }
 }
