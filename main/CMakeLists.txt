@@ -1,13 +1,6 @@
 # Set the minimum required version of CMake
 cmake_minimum_required(VERSION 3.5)
 
-# Fetch the VERSION_TAG from environment variable set during the GitHub Actions workflow
-if(DEFINED ENV{VERSION_TAG})
-    set(VERSION_TAG $ENV{VERSION_TAG})
-else()
-    set(VERSION_TAG "v1.0.0-unknown")
-endif()
-
 # Define the source files
 set(SOURCES 
     "main.c" 
@@ -60,6 +53,3 @@ idf_component_register(
         gecl-misc-util-manager
         gecl-versioning-manager
 )
-
-# Set the VERSION_TAG as a compile definition
-add_compile_definitions(VERSION_TAG="${VERSION_TAG}")

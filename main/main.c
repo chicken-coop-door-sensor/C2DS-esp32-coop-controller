@@ -19,10 +19,6 @@
 #include "sdkconfig.h"
 #include "sensors.h"
 
-#ifndef VERSION_TAG
-#define VERSION_TAG "undefined"
-#endif
-
 static const char *TAG = "MAIN";
 const char *device_name = CONFIG_WIFI_HOSTNAME;
 
@@ -184,8 +180,6 @@ void check_boot_origin(esp_mqtt_client_handle_t my_client) {
 
 void app_main(void) {
     print_version_info();
-
-    ESP_LOGI(TAG, "\n\nFirmware Version: %s\n\n", VERSION_TAG);
 
     show_mac_address();
 
