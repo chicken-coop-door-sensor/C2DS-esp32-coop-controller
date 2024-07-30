@@ -10,7 +10,8 @@
         "gecl-rgb-led-manager.h": "c",
         "debug.h": "c",
         "nvs_flash.h": "c",
-        "gecl-mqtt-manager.h": "c"
+        "gecl-mqtt-manager.h": "c",
+        "gecl-misc-util-manager.h": "c"
     },
     "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
     "terminal.integrated.profiles.osx": {

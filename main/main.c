@@ -12,6 +12,7 @@
 #include "gecl-ota-manager.h"
 #include "gecl-rgb-led-manager.h"
 #include "gecl-time-sync-manager.h"
+#include "gecl-versioning-manager.h"
 #include "gecl-wifi-manager.h"
 #include "mbedtls/debug.h"
 #include "nvs_flash.h"
@@ -27,6 +28,10 @@ const char *device_name = CONFIG_WIFI_HOSTNAME;
 
 QueueHandle_t log_queue = NULL;
 QueueHandle_t led_state_queue = NULL;
+
+// Initialize task handles
+TaskHandle_t read_sensors_task_handle = NULL;  // Task handle for read_sensors_task
+TaskHandle_t ota_handler_task_handle = NULL;   // Task handle for OTA updating
 
 extern const uint8_t chicken_coop_door_controller_certificate_pem_crt[];
 extern const uint8_t chicken_coop_door_controller_private_pem_key[];
@@ -50,9 +55,9 @@ void custom_handle_mqtt_event_disconnected(esp_mqtt_event_handle_t event) {
         vTaskDelete(read_sensors_task_handle);
         read_sensors_task_handle = NULL;
     }
-    if (ota_task_handle != NULL) {
-        vTaskDelete(ota_task_handle);
-        ota_task_handle = NULL;
+    if (ota_handler_task_handle != NULL) {
+        vTaskDelete(ota_handler_task_handle);
+        ota_handler_task_handle = NULL;
     }
 }
 
@@ -76,17 +81,17 @@ void custom_handle_mqtt_event_data(esp_mqtt_event_handle_t event) {
         }
     } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC, event->topic_len) == 0) {
         ESP_LOGI(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC);
-        if (ota_task_handle != NULL) {
-            eTaskState task_state = eTaskGetState(ota_task_handle);
+        if (ota_handler_task_handle != NULL) {
+            eTaskState task_state = eTaskGetState(ota_handler_task_handle);
             if (task_state != eDeleted) {
                 ESP_LOGW(TAG, "OTA task is already running or not yet cleaned up, skipping OTA update");
                 return;
             }
             // Clean up task handle if it has been deleted
-            ota_task_handle = NULL;
+            ota_handler_task_handle = NULL;
         }
         set_led(LED_FLASHING_GREEN);
-        xTaskCreate(&ota_task, "ota_task", 8192, event, 5, &ota_task_handle);
+        xTaskCreate(&ota_handler_task, "ota_handler_task", 8192, event, 5, &ota_handler_task_handle);
     }
 }
 
