@@ -77,6 +77,7 @@ jobs:
       - name: Get our versioning information
         run: |
           cat build/include/gecl-versioning-manager.h
+        working-directory: ${{ github.workspace }}
 
       - name: Upload Controller to S3
         env:
