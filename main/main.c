@@ -96,7 +96,7 @@ void custom_handle_mqtt_event_data(esp_mqtt_event_handle_t event) {
         xTaskCreate(&ota_handler_task, "ota_handler_task", 8192, event, 5, &ota_handler_task_handle);
     } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC, event->topic_len) == 0) {
         ESP_LOGI(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC);
-        request_telemetry();
+        transmit_telemetry();
     }
 }
 
@@ -171,22 +171,6 @@ esp_mqtt_client_handle_t start_mqtt(const mqtt_config_t *config) {
     return client;
 }
 
-void check_boot_origin(esp_mqtt_client_handle_t my_client) {
-    if (was_booted_after_ota_update()) {
-        char buffer[128];
-        ESP_LOGW("MISC_UTIL", "Device booted after an OTA update.");
-        cJSON *root = cJSON_CreateObject();
-        sprintf(buffer, "Successful reboot after OTA update");
-        cJSON_AddStringToObject(root, get_device_name(), buffer);
-        const char *json_string = cJSON_Print(root);
-        esp_mqtt_client_publish(my_client, CONFIG_MQTT_PUBLISH_OTA_PROGRESS_TOPIC, json_string, 0, 1, 0);
-        free(root);
-        free(json_string);
-    } else {
-        ESP_LOGW("MISC_UTIL", "Device did not boot after an OTA update.");
-    }
-}
-
 void app_main(void) {
     print_version_info();
 
@@ -206,8 +190,6 @@ void app_main(void) {
 
     esp_mqtt_client_handle_t client = start_mqtt(&config);
 
-    check_boot_origin(client);
-
     led_state_queue = start_led_task(client);
 
     set_led(LED_FLASHING_WHITE);
@@ -216,9 +198,9 @@ void app_main(void) {
 
     xTaskCreate(&heartbeat_task, "heartbeat_task", 4096, (void *)client, 5, NULL);
 
-    init_telemetry_manager(device_name, CONFIG_AWS_IOT_ENDPOINT);
+    init_telemetry_manager(device_name, client, CONFIG_MQTT_PUBLISH_TELEMETRY_TOPIC);
 
-    request_telemetry();
+    transmit_telemetry();
 
     // Infinite loop to prevent exiting app_main
     while (true) {
