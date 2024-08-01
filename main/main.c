@@ -36,11 +36,16 @@ extern const uint8_t chicken_coop_door_controller_private_pem_key[];
 void custom_handle_mqtt_event_connected(esp_mqtt_event_handle_t event) {
     esp_mqtt_client_handle_t client = event->client;
     ESP_LOGI(TAG, "Custom handler: MQTT_EVENT_CONNECTED");
+
     ESP_LOGI(TAG, "Subscribing to topic %s", CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC);
     esp_mqtt_client_subscribe(client, CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC, 0);
 
     ESP_LOGI(TAG, "Subscribing to topic %s", CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC);
     esp_mqtt_client_subscribe(client, CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC, 0);
+
+    ESP_LOGI(TAG, "Subscribing to topic %s", CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC);
+    esp_mqtt_client_subscribe(client, CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC, 0);
+
     if (read_sensors_task_handle == NULL) {
         xTaskCreate(&read_sensors_task, "read_sensors_task", 4096, (void *)client, 5, &read_sensors_task_handle);
     }
@@ -89,6 +94,9 @@ void custom_handle_mqtt_event_data(esp_mqtt_event_handle_t event) {
         }
         set_led(LED_FLASHING_GREEN);
         xTaskCreate(&ota_handler_task, "ota_handler_task", 8192, event, 5, &ota_handler_task_handle);
+    } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC, event->topic_len) == 0) {
+        ESP_LOGI(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC);
+        request_telemetry();
     }
 }
 
