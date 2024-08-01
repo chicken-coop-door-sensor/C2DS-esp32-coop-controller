@@ -11,6 +11,7 @@
 #include "gecl-mqtt-manager.h"
 #include "gecl-ota-manager.h"
 #include "gecl-rgb-led-manager.h"
+#include "gecl-telemetry-manager.h"
 #include "gecl-time-sync-manager.h"
 #include "gecl-versioning-manager.h"
 #include "gecl-wifi-manager.h"
@@ -206,6 +207,10 @@ void app_main(void) {
     init_sensors_gpio();
 
     xTaskCreate(&heartbeat_task, "heartbeat_task", 4096, (void *)client, 5, NULL);
+
+    init_telemetry_manager(device_name, CONFIG_AWS_IOT_ENDPOINT);
+
+    request_telemetry();
 
     // Infinite loop to prevent exiting app_main
     while (true) {
