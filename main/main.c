@@ -196,7 +196,7 @@ void app_main(void) {
 
     init_sensors_gpio();
 
-    xTaskCreate(&heartbeat_task, "heartbeat_task", 4096, (void *)client, 5, NULL);
+    init_heartbeat_manager(client, CONFIG_MQTT_PUBLISH_HEARTBEAT_TOPIC);
 
     init_telemetry_manager(device_name, client, CONFIG_MQTT_PUBLISH_TELEMETRY_TOPIC);
 
