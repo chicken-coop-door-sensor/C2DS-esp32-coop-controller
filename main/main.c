@@ -23,7 +23,6 @@
 static const char *TAG = "MAIN";
 const char *device_name = CONFIG_WIFI_HOSTNAME;
 
-QueueHandle_t log_queue = NULL;
 QueueHandle_t led_state_queue = NULL;
 
 // Initialize task handles
@@ -114,12 +113,6 @@ void custom_handle_mqtt_event_error(esp_mqtt_event_handle_t event) {
     esp_restart();
 }
 
-static void tls_debug_callback(void *ctx, int level, const char *file, int line, const char *str) {
-    // Uncomment to enable verbose debugging
-    const char *MBEDTLS_DEBUG_LEVEL[] = {"Error", "Warning", "Info", "Debug", "Verbose"};
-    ESP_LOGI("mbedTLS", "%s: %s:%04d: %s", MBEDTLS_DEBUG_LEVEL[level], file, line, str);
-}
-
 QueueHandle_t start_led_task(esp_mqtt_client_handle_t my_client) {
     ESP_LOGI("MISC_UTIL", "Initializing LED PWM");
     init_led_pwm();
@@ -133,18 +126,6 @@ QueueHandle_t start_led_task(esp_mqtt_client_handle_t my_client) {
     ESP_LOGI("MISC_UTIL", "Creating LED task");
     xTaskCreate(&led_task, "led_task", 4096, (void *)my_client, 5, NULL);
     return led_state_queue;
-}
-
-QueueHandle_t start_logging(void) {
-    log_queue = xQueueCreate(LOG_QUEUE_LENGTH, sizeof(log_message_t));
-
-    if (log_queue == NULL) {
-        ESP_LOGE("MISC_UTIL", "Failed to create logger queue");
-        esp_restart();
-    }
-
-    xTaskCreate(&logger_task, "logger_task", 4096, NULL, 5, NULL);
-    return log_queue;
 }
 
 void setup_nvs_flash(void) {
@@ -182,8 +163,6 @@ void app_main(void) {
 
     synchronize_time();
 
-    log_queue = start_logging();
-
     mqtt_config_t config = {.certificate = chicken_coop_door_controller_certificate_pem_crt,
                             .private_key = chicken_coop_door_controller_private_pem_key,
                             .broker_uri = CONFIG_AWS_IOT_ENDPOINT};
@@ -201,6 +180,8 @@ void app_main(void) {
     init_telemetry_manager(device_name, client, CONFIG_MQTT_PUBLISH_TELEMETRY_TOPIC);
 
     transmit_telemetry();
+
+    init_cloud_logger(client, CONFIG_MQTT_PUBLISH_LOG_TOPIC);
 
     // Infinite loop to prevent exiting app_main
     while (true) {
