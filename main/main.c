@@ -47,6 +47,7 @@ void custom_handle_mqtt_event_connected(esp_mqtt_event_handle_t event) {
 
     if (read_sensors_task_handle == NULL) {
         xTaskCreate(&read_sensors_task, "read_sensors_task", 4096, (void *)client, 5, &read_sensors_task_handle);
+        init_status_timer(client);
     }
 }
 
