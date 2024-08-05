@@ -65,7 +65,7 @@ void custom_handle_mqtt_event_disconnected(esp_mqtt_event_handle_t event) {
 void custom_handle_mqtt_event_data(esp_mqtt_event_handle_t event) {
     ESP_LOGI(TAG, "Custom handler: MQTT_EVENT_DATA");
     if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC, event->topic_len) == 0) {
-        ESP_LOGW(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC);
+        ESP_LOGW(TAG, "Received Status topic %s", CONFIG_MQTT_SUBSCRIBE_STATUS_TOPIC);
         // Handle the status response
         cJSON *json = cJSON_Parse(event->data);
         if (json == NULL) {
@@ -81,7 +81,7 @@ void custom_handle_mqtt_event_data(esp_mqtt_event_handle_t event) {
             cJSON_Delete(json);
         }
     } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC, event->topic_len) == 0) {
-        ESP_LOGI(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC);
+        ESP_LOGI(TAG, "Received OTA topic %s", CONFIG_MQTT_SUBSCRIBE_OTA_UPDATE_CONTROLLER_TOPIC);
         if (ota_handler_task_handle != NULL) {
             eTaskState task_state = eTaskGetState(ota_handler_task_handle);
             if (task_state != eDeleted) {
@@ -92,9 +92,14 @@ void custom_handle_mqtt_event_data(esp_mqtt_event_handle_t event) {
             ota_handler_task_handle = NULL;
         }
         set_led(LED_FLASHING_GREEN);
+        ESP_LOGI(TAG, "event->data_len: %d", event->data_len);
+        if (event->data_len == 0) {
+            ESP_LOGE(TAG, "No data received for OTA update");
+            return;
+        }
         xTaskCreate(&ota_handler_task, "ota_handler_task", 8192, event, 5, &ota_handler_task_handle);
     } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC, event->topic_len) == 0) {
-        ESP_LOGI(TAG, "Received topic %s", CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC);
+        ESP_LOGI(TAG, "Received Telemetry topic %s", CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC);
         transmit_telemetry();
     }
 }
