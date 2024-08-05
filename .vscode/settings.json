@@ -27,5 +27,6 @@
     "terminal.integrated.defaultProfile.osx": "MyCustomProfile",
     "workbench.startupEditor": "none",
     "workbench.welcomePage.enabled": false,
-    "git.defaultCloneDirectory": "/Users/tennis/src"
+    "git.defaultCloneDirectory": "/Users/tennis/src",
+    "terminal.integrated.fontSize": 14
 }
