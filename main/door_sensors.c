@@ -21,7 +21,6 @@ door_status_t current_door_status = DOOR_STATUS_UNKNOWN;
 door_status_t last_door_status = DOOR_STATUS_UNKNOWN;
 
 static TimerHandle_t status_timer;
-static uint64_t last_publish_time = 0;
 
 void init_sensors_gpio() {
     gpio_config_t io_conf;
@@ -35,6 +34,9 @@ void init_sensors_gpio() {
     gpio_config(&io_conf);
 }
 
+#include "cJSON.h"
+
+// Function to publish door status
 static void publish_door_status(esp_mqtt_client_handle_t client, door_status_t status, const char *mqtt_topic) {
     const char *status_str = NULL;
     switch (status) {
@@ -57,14 +59,37 @@ static void publish_door_status(esp_mqtt_client_handle_t client, door_status_t s
         return;
     }
 
-    ESP_LOGI(TAG, "Publishing door status: %s", status_str);
-    char message[50];
-    snprintf(message, sizeof(message), "{\"door\":\"%s\"}", status_str);
-    int msg_id = esp_mqtt_client_publish(client, mqtt_topic, message, 0, 1, 0);
-    ESP_LOGI(TAG, "publish successful to %s, msg_id=%d", mqtt_topic, msg_id);
+    // Create JSON object
+    cJSON *json = cJSON_CreateObject();
+    if (json == NULL) {
+        ESP_LOGE(TAG, "Failed to create JSON object");
+        return;
+    }
 
-    // Update the last publish time
-    last_publish_time = esp_timer_get_time() / 1000;
+    // Add door status to JSON object
+    cJSON_AddStringToObject(json, "door", status_str);
+
+    // Convert JSON object to string
+    char *message = cJSON_PrintUnformatted(json);
+    if (message == NULL) {
+        ESP_LOGE(TAG, "Failed to print JSON object");
+        cJSON_Delete(json);
+        return;
+    }
+
+    ESP_LOGI(TAG, "Publishing door status: %s to topic %s", message, mqtt_topic);
+
+    // Publish the message
+    int msg_id = esp_mqtt_client_publish(client, mqtt_topic, message, strlen(message), 1, 0);
+    if (msg_id == -1) {
+        ESP_LOGE(TAG, "Failed to publish message to topic %s", mqtt_topic);
+    } else {
+        ESP_LOGI(TAG, "Publish successful to %s, msg_id=%d", mqtt_topic, msg_id);
+    }
+
+    // Free JSON object and message string
+    cJSON_Delete(json);
+    free(message);
 }
 
 static door_status_t read_door_status() {
@@ -80,26 +105,38 @@ static door_status_t read_door_status() {
 }
 
 static void status_timer_callback(TimerHandle_t xTimer) {
-    esp_mqtt_client_handle_t client = (esp_mqtt_client_handle_t)pvTimerGetTimerID(xTimer);
+    timer_context_t *context = (timer_context_t *)pvTimerGetTimerID(xTimer);
+    esp_mqtt_client_handle_t client = context->client;
+    const char *mqtt_topic = context->mqtt_topic;
+
     current_door_status = read_door_status();
 
     // Immediately publish status if it has changed
     if (current_door_status != last_door_status) {
-        const char *mqtt_topic = (const char *)pvTimerGetTimerID(xTimer);
         publish_door_status(client, current_door_status, mqtt_topic);
         last_door_status = current_door_status;
     }
 }
 
 void init_status_timer(esp_mqtt_client_handle_t client, const char *mqtt_topic, int transmit_interval_minutes) {
+    timer_context_t *context = malloc(sizeof(timer_context_t));
+    if (context == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory for timer context");
+        return;
+    }
+    context->client = client;
+    context->mqtt_topic = mqtt_topic;
+
     // Create a timer with a period of MAIN_LOOP_SLEEP_MS for sensor reading and status checking
-    status_timer = xTimerCreate("StatusTimer", pdMS_TO_TICKS(MAIN_LOOP_SLEEP_MS), pdTRUE, (void *)mqtt_topic,
-                                status_timer_callback);
+    status_timer =
+        xTimerCreate("StatusTimer", pdMS_TO_TICKS(MAIN_LOOP_SLEEP_MS), pdTRUE, (void *)context, status_timer_callback);
     if (status_timer == NULL) {
         ESP_LOGE(TAG, "Failed to create status timer");
+        free(context);
     } else {
         if (xTimerStart(status_timer, 0) != pdPASS) {
             ESP_LOGE(TAG, "Failed to start status timer");
+            free(context);
         }
     }
 }

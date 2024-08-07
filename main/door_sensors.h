@@ -10,6 +10,11 @@
 #include "freertos/timers.h"
 #include "mqtt_client.h"
 
+typedef struct {
+    esp_mqtt_client_handle_t client;
+    const char *mqtt_topic;
+} timer_context_t;
+
 // Enum to define door status
 typedef enum { DOOR_STATUS_UNKNOWN = 0, DOOR_STATUS_OPEN, DOOR_STATUS_CLOSED, DOOR_STATUS_ERROR } door_status_t;
 
