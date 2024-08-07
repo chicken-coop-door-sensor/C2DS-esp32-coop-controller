@@ -1,4 +1,5 @@
 #include "cJSON.h"
+#include "door_sensors.h"
 #include "esp_https_ota.h"
 #include "esp_log.h"
 #include "esp_system.h"
@@ -18,7 +19,6 @@
 #include "mbedtls/debug.h"
 #include "nvs_flash.h"
 #include "sdkconfig.h"
-#include "sensors.h"
 
 static const char *TAG = "MAIN";
 const char *device_name = CONFIG_WIFI_HOSTNAME;
@@ -90,9 +90,6 @@ void custom_handle_mqtt_event_data(esp_mqtt_event_handle_t event) {
             return;
         }
         xTaskCreate(&ota_handler_task, "ota_handler_task", 8192, event, 5, &ota_handler_task_handle);
-    } else if (strncmp(event->topic, CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC, event->topic_len) == 0) {
-        ESP_LOGI(TAG, "Received Telemetry topic %s", CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC);
-        transmit_telemetry();
     }
 }
 
