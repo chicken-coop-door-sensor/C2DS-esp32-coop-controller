@@ -44,19 +44,10 @@ void custom_handle_mqtt_event_connected(esp_mqtt_event_handle_t event) {
 
     ESP_LOGI(TAG, "Subscribing to topic %s", CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC);
     esp_mqtt_client_subscribe(client, CONFIG_MQTT_SUBSCRIBE_TELEMETRY_REQUEST_TOPIC, 0);
-
-    if (read_sensors_task_handle == NULL) {
-        xTaskCreate(&read_sensors_task, "read_sensors_task", 4096, (void *)client, 5, &read_sensors_task_handle);
-        init_status_timer(client);
-    }
 }
 
 void custom_handle_mqtt_event_disconnected(esp_mqtt_event_handle_t event) {
     ESP_LOGI(TAG, "Custom handler: MQTT_EVENT_DISCONNECTED");
-    if (read_sensors_task_handle != NULL) {
-        vTaskDelete(read_sensors_task_handle);
-        read_sensors_task_handle = NULL;
-    }
     if (ota_handler_task_handle != NULL) {
         vTaskDelete(ota_handler_task_handle);
         ota_handler_task_handle = NULL;
@@ -159,10 +150,6 @@ esp_mqtt_client_handle_t start_mqtt(const mqtt_config_t *config) {
 }
 
 void app_main(void) {
-    print_version_info();
-
-    show_mac_address();
-
     setup_nvs_flash();
 
     wifi_init_sta();
@@ -179,13 +166,12 @@ void app_main(void) {
 
     set_led(LED_FLASHING_WHITE);
 
-    init_sensors_gpio();
+    init_door_sensors(client, CONFIG_MQTT_PUBLISH_STATUS_TOPIC, CONFIG_DOOR_SENSOR_STATUS_TRANSMIT_INTERVAL_MINUTES);
 
-    init_heartbeat_manager(client, CONFIG_MQTT_PUBLISH_HEARTBEAT_TOPIC);
+    init_heartbeat_manager(client, CONFIG_MQTT_PUBLISH_HEARTBEAT_TOPIC, CONFIG_HEARTBEAT_TRANSMIT_INTERVAL_MINUTES);
 
-    init_telemetry_manager(device_name, client, CONFIG_MQTT_PUBLISH_TELEMETRY_TOPIC);
-
-    transmit_telemetry();
+    init_telemetry_manager(device_name, client, CONFIG_MQTT_PUBLISH_TELEMETRY_TOPIC,
+                           CONFIG_TELEMETRY_TRANSMIT_INTERVAL_MINUTES);
 
     init_cloud_logger(client, CONFIG_MQTT_PUBLISH_LOG_TOPIC);
 
